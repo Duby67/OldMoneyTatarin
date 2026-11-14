@@ -47,37 +47,5 @@
             "configurePreset": "windows_msvc",
             "configuration": "Release"
         }
-    ],
-    "testPresets": [
-        {
-            "name": "base",
-            "hidden": true,
-            "output": {
-                "outputOnFailure": true,
-                "verbosity": "extra"
-            },
-            "execution": {
-                "noTestsAction": "error"
-            },
-            "filter": {
-                "exclude": {
-                    "name": "^example64|example$"
-                }
-            }
-        },
-        {
-            "name": "windows_msvc",
-            "displayName": "Windows (MSVC)",
-            "inherits": [
-                "base"
-            ],
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            },
-            "configurePreset": "windows_msvc",
-            "configuration": "Release"
-        }
     ]
 }

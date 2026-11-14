@@ -4,6 +4,7 @@ param(
     [string]$QtRoot,
     [string]$VcpkgRoot,
     [string]$JavaHome,
+    [string]$BuildDirectory,
     [ValidateRange(1, 64)]
     [int]$Jobs = 2,
     [switch]$ConfigureOnly,
@@ -12,6 +13,9 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
+if (-not $BuildDirectory) { $BuildDirectory = Join-Path $repoRoot 'dist/build/windows_msvc' }
+elseif (-not [IO.Path]::IsPathRooted($BuildDirectory)) { $BuildDirectory = Join-Path $repoRoot $BuildDirectory }
+$BuildDirectory = [IO.Path]::GetFullPath($BuildDirectory)
 if (-not $QtRoot) { $QtRoot = Join-Path $repoRoot '.cache/deps/Qt/6.10.2/msvc2022_64' }
 if (-not $VcpkgRoot) { $VcpkgRoot = Join-Path $repoRoot '.cache/deps/vcpkg' }
 if (-not $JavaHome) {
@@ -53,13 +57,13 @@ $ninjaDir = Join-Path $vsRoot 'Common7/IDE/CommonExtensions/Microsoft/CMake/Ninj
 $env:PATH = "$ninjaDir;$env:JAVA_HOME/bin;$QtRoot/bin;$env:PATH"
 Push-Location $repoRoot
 try {
-    & cmake --preset windows_msvc "-DCMAKE_MAKE_PROGRAM=$ninjaDir/ninja.exe" "-DCMAKE_PREFIX_PATH=$QtRoot" "-DVCPKG_INSTALLED_DIR=$repoRoot/dist/vcpkg_installed" '-DVCPKG_TARGET_TRIPLET=x64-windows' '-DENABLE_LTO=OFF'
+    & cmake --preset windows_msvc -B $BuildDirectory "-DCMAKE_MAKE_PROGRAM=$ninjaDir/ninja.exe" "-DCMAKE_PREFIX_PATH=$QtRoot" "-DVCPKG_INSTALLED_DIR=$repoRoot/dist/vcpkg_installed" '-DVCPKG_TARGET_TRIPLET=x64-windows' '-DENABLE_LTO=OFF'
     if ($LASTEXITCODE -ne 0) { throw 'Ошибка конфигурации CMake.' }
     if ($ConfigureOnly) { return }
-    & cmake --build --preset windows_msvc --config $Configuration --parallel $Jobs
+    & cmake --build $BuildDirectory --config $Configuration --parallel $Jobs
     if ($LASTEXITCODE -ne 0) { throw 'Ошибка сборки.' }
     if ($Install) {
-        & cmake --install (Join-Path $repoRoot 'dist/build/windows_msvc') --config $Configuration
+        & cmake --install $BuildDirectory --config $Configuration
         if ($LASTEXITCODE -ne 0) { throw 'Ошибка установки в dist/app/windows_msvc.' }
     }
 }

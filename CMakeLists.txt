@@ -147,16 +147,8 @@ if(ENABLE_LTO)
     endif()
 endif()
 
-option(BUILD_TESTING "Build the testing tree." ON)
-
 find_package(ECM NO_MODULE REQUIRED)
 set(CMAKE_MODULE_PATH "${ECM_MODULE_PATH};${CMAKE_MODULE_PATH}")
-
-include(CTest)
-include(ECMAddTests)
-if(BUILD_TESTING)
-    enable_testing()
-endif()
 
 ##################################### Set Application options #####################################
 
@@ -273,7 +265,7 @@ set(Launcher_BUILD_TIMESTAMP "${TODAY}")
 # Find the required Qt parts
 if(Launcher_QT_VERSION_MAJOR EQUAL 6)
     set(QT_VERSION_MAJOR 6)
-    find_package(Qt6 6.8 REQUIRED COMPONENTS Core CoreTools Widgets Concurrent Network Test Xml NetworkAuth OpenGL)
+    find_package(Qt6 6.8 REQUIRED COMPONENTS Core CoreTools Widgets Concurrent Network Xml NetworkAuth OpenGL)
 else()
     message(FATAL_ERROR "Qt version ${Launcher_QT_VERSION_MAJOR} is not supported")
 endif()
@@ -369,8 +361,5 @@ add_subdirectory(libraries/qdcss) # css parser
 
 add_subdirectory(buildconfig)
 
-if(BUILD_TESTING)
-    add_subdirectory(tests)
-endif()
 # NOTE: this must always be last to appease the CMake deity of quirky install command evaluation order.
 add_subdirectory(launcher)
