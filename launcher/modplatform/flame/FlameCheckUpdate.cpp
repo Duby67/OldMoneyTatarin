@@ -111,10 +111,10 @@ void FlameCheckUpdate::getLatestVersionCallback(Resource* resource, QByteArray* 
     }
 
     if (!latestVer->hash.isEmpty() &&
-        (resource->metadata()->hash != latestVer->hash || resource->status() == ResourceStatus::NotInstalled)) {
+        (resource->metadata()->hash != latestVer->hash || resource->status() == ResourceStatus::NOT_INSTALLED)) {
         auto oldVersion = resource->metadata()->version_number;
         if (oldVersion.isEmpty()) {
-            if (resource->status() == ResourceStatus::NotInstalled) {
+            if (resource->status() == ResourceStatus::NOT_INSTALLED) {
                 oldVersion = tr("Not installed");
             } else {
                 oldVersion = tr("Unknown");

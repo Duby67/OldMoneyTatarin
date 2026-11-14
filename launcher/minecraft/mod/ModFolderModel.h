@@ -46,6 +46,7 @@
 
 #include "Mod.h"
 #include "ResourceFolderModel.h"
+#include "minecraft/Component.h"
 #include "minecraft/mod/Resource.h"
 
 class BaseInstance;
@@ -58,7 +59,7 @@ class QFileSystemWatcher;
 class ModFolderModel : public ResourceFolderModel {
     Q_OBJECT
    public:
-    enum Columns : std::uint8_t {
+    enum Columns {
         ActiveColumn = 0,
         ImageColumn,
         NameColumn,
@@ -72,12 +73,11 @@ class ModFolderModel : public ResourceFolderModel {
         ReleaseTypeColumn,
         RequiresColumn,
         RequiredByColumn,
-        FileNameColumn,
-        NumColumns
+        NUM_COLUMNS
     };
-    ModFolderModel(const QDir& dir, BaseInstance* instance, bool isIndexed, bool createDir, QObject* parent = nullptr);
+    ModFolderModel(const QDir& dir, BaseInstance* instance, bool is_indexed, bool create_dir, QObject* parent = nullptr);
 
-    QString id() const override { return "mods"; }
+    virtual QString id() const override { return "mods"; }
 
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
 
@@ -85,7 +85,7 @@ class ModFolderModel : public ResourceFolderModel {
     int columnCount(const QModelIndex& parent) const override;
 
     [[nodiscard]] Resource* createResource(const QFileInfo& file) override { return new Mod(file); }
-    [[nodiscard]] Task* createParseTask(Resource& /*unused*/) override;
+    [[nodiscard]] Task* createParseTask(Resource&) override;
 
     bool isValid();
 
@@ -97,11 +97,11 @@ class ModFolderModel : public ResourceFolderModel {
     RESOURCE_HELPERS(Mod)
 
    public:
-    QStringList requiresList(const QString& id);
-    QStringList requiredByList(const QString& id);
+    QStringList requiresList(QString id);
+    QStringList requiredByList(QString id);
 
    private slots:
-    void onParseSucceeded(int ticket, const QString& resourceId) override;
+    void onParseSucceeded(int ticket, QString resource_id) override;
     void onParseFinished();
 
    private:

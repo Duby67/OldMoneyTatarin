@@ -68,8 +68,7 @@ class Mod : public Resource {
     auto issueTracker() const -> QString;
     auto side() const -> QString;
     auto loaders() const -> QString;
-    auto mcVersions() const -> QStringList;
-    auto mcVersionsString() const -> QString;
+    auto mcVersions() const -> QString;
     auto releaseType() const -> QString;
     QStringList dependencies() const;
 

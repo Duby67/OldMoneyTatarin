@@ -13,10 +13,6 @@ endif()
 ##################################### Set CMake options #####################################
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTOGEN_ORIGIN_DEPENDS OFF)
-set(CMAKE_GLOBAL_AUTOGEN_TARGET ON)
-set(CMAKE_GLOBAL_AUTORCC_TARGET ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/")
@@ -183,9 +179,14 @@ set(Launcher_LOGIN_CALLBACK_URL "https://pineconemc.ru/successful-login" CACHE S
 set(Launcher_LEGACY_FMLLIBS_BASE_URL "https://files.pineconemc.ru/fmllibs/" CACHE STRING "URL for legacy (<=1.5.2) FML Libraries.")
 
 ######## Set version numbers ########
-set(Launcher_VERSION_MAJOR 12)
-set(Launcher_VERSION_MINOR 0)
-set(Launcher_VERSION_PATCH 0)
+set(Launcher_VERSION_MAJOR 11)
+set(Launcher_VERSION_MINOR 1)
+set(Launcher_VERSION_PATCH 2)
+
+include(cmake/OldMoneyTatarinVersion.cmake)
+set(Launcher_VERSION_MAJOR "${OldMoneyTatarin_VERSION_MAJOR}")
+set(Launcher_VERSION_MINOR "${OldMoneyTatarin_VERSION_MINOR}")
+set(Launcher_VERSION_PATCH "${OldMoneyTatarin_VERSION_PATCH}")
 
 set(Launcher_VERSION_NAME "${Launcher_VERSION_MAJOR}.${Launcher_VERSION_MINOR}.${Launcher_VERSION_PATCH}")
 set(Launcher_VERSION_NAME4 "${Launcher_VERSION_MAJOR}.${Launcher_VERSION_MINOR}.${Launcher_VERSION_PATCH}.0")
@@ -195,7 +196,7 @@ set(Launcher_VERSION_NAME4_COMMA "${Launcher_VERSION_MAJOR},${Launcher_VERSION_M
 set(Launcher_BUILD_PLATFORM "unknown" CACHE STRING "A short string identifying the platform that this build was built for. Only used to display in the about dialog.")
 
 # Github repo URL with releases for updater
-set(Launcher_UPDATER_GITHUB_REPO "https://github.com/ElyPrismLauncher/Launcher" CACHE STRING "Base github URL for the updater.")
+set(Launcher_UPDATER_GITHUB_REPO "https://github.com/Duby67/OldMoneyTatarin" CACHE STRING "Base github URL for the updater.")
 
 # Name to help updater identify valid artifacts
 set(Launcher_BUILD_ARTIFACT "" CACHE STRING "Artifact name to help the updater identify valid artifacts.")

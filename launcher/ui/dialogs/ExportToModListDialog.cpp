@@ -214,8 +214,6 @@ void ExportToModListDialog::addExtra(ExportToModList::OptionalData option)
         case ExportToModList::FileName:
             ui->templateText->insertPlainText("{filename}");
             break;
-        case ExportToModList::None:
-            break;
     }
 }
 void ExportToModListDialog::enableCustom(bool enabled)

@@ -178,12 +178,12 @@ void ModrinthCheckUpdate::checkVersionsResponse(QByteArray* response, std::optio
             pack->slug = resource->metadata()->slug;
             pack->addonId = resource->metadata()->project_id;
             pack->provider = ModPlatform::ResourceProvider::MODRINTH;
-            if ((projectVer.hash != hash && projectVer.is_preferred) || (resource->status() == ResourceStatus::NotInstalled)) {
+            if ((projectVer.hash != hash && projectVer.is_preferred) || (resource->status() == ResourceStatus::NOT_INSTALLED)) {
                 auto downloadTask = makeShared<ResourceDownloadTask>(pack, projectVer, m_resourceModel, true, "update");
 
                 QString oldVersion = resource->metadata()->version_number;
                 if (oldVersion.isEmpty()) {
-                    if (resource->status() == ResourceStatus::NotInstalled) {
+                    if (resource->status() == ResourceStatus::NOT_INSTALLED) {
                         oldVersion = tr("Not installed");
                     } else {
                         oldVersion = tr("Unknown");

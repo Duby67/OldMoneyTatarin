@@ -51,39 +51,38 @@
 #include <QUrl>
 #include <QUuid>
 #include <algorithm>
-#include <set>
 
+#include "minecraft/Component.h"
 #include "minecraft/mod/Resource.h"
 #include "minecraft/mod/ResourceFolderModel.h"
 #include "minecraft/mod/tasks/LocalModParseTask.h"
 #include "modplatform/ModIndex.h"
 #include "ui/dialogs/CustomMessageBox.h"
 
-ModFolderModel::ModFolderModel(const QDir& dir, BaseInstance* instance, bool isIndexed, bool createDir, QObject* parent)
-    : ResourceFolderModel(QDir(dir), instance, isIndexed, createDir, parent)
+ModFolderModel::ModFolderModel(const QDir& dir, BaseInstance* instance, bool is_indexed, bool create_dir, QObject* parent)
+    : ResourceFolderModel(QDir(dir), instance, is_indexed, create_dir, parent)
 {
-    m_columnNames = QStringList({ "Enable", "Image", "Name", "Version", "Last Modified", "Provider", "Size", "Side", "Loaders",
-                                  "Minecraft Versions", "Release Type", "Requires", "Required By", "File Name" });
-    m_columnNamesTranslated =
+    m_column_names = QStringList({ "Enable", "Image", "Name", "Version", "Last Modified", "Provider", "Size", "Side", "Loaders",
+                                   "Minecraft Versions", "Release Type", "Requires", "Required By" });
+    m_column_names_translated =
         QStringList({ tr("Enable"), tr("Image"), tr("Name"), tr("Version"), tr("Last Modified"), tr("Provider"), tr("Size"), tr("Side"),
-                      tr("Loaders"), tr("Minecraft Versions"), tr("Release Type"), tr("Requires"), tr("Required By"), tr("File Name") });
-    m_columnSortKeys = { SortType::Enabled,     SortType::Name,     SortType::Name,       SortType::Version, SortType::Date,
-                         SortType::Provider,    SortType::Size,     SortType::Side,       SortType::Loaders, SortType::McVersions,
-                         SortType::ReleaseType, SortType::Requires, SortType::RequiredBy, SortType::Filename };
-    m_columnResizeModes = { QHeaderView::Interactive, QHeaderView::Interactive, QHeaderView::Stretch,     QHeaderView::Interactive,
-                            QHeaderView::Interactive, QHeaderView::Interactive, QHeaderView::Interactive, QHeaderView::Interactive,
-                            QHeaderView::Interactive, QHeaderView::Interactive, QHeaderView::Interactive, QHeaderView::Interactive,
-                            QHeaderView::Interactive, QHeaderView::Interactive };
-    m_columnsHideable = { false, true, false, true, true, true, true, true, true, true, true, true, true, true };
+                      tr("Loaders"), tr("Minecraft Versions"), tr("Release Type"), tr("Requires"), tr("Required By") });
+    m_column_sort_keys = { SortType::ENABLED,      SortType::NAME,     SortType::NAME,       SortType::VERSION, SortType::DATE,
+                           SortType::PROVIDER,     SortType::SIZE,     SortType::SIDE,       SortType::LOADERS, SortType::MC_VERSIONS,
+                           SortType::RELEASE_TYPE, SortType::REQUIRES, SortType::REQUIRED_BY };
+    m_column_resize_modes = { QHeaderView::Interactive, QHeaderView::Interactive, QHeaderView::Stretch,     QHeaderView::Interactive,
+                              QHeaderView::Interactive, QHeaderView::Interactive, QHeaderView::Interactive, QHeaderView::Interactive,
+                              QHeaderView::Interactive, QHeaderView::Interactive, QHeaderView::Interactive, QHeaderView::Interactive,
+                              QHeaderView::Interactive };
+    m_columnsHideable = { false, true, false, true, true, true, true, true, true, true, true, true, true };
 
     connect(this, &ModFolderModel::parseFinished, this, &ModFolderModel::onParseFinished);
 }
 
 QVariant ModFolderModel::data(const QModelIndex& index, int role) const
 {
-    if (!validateIndex(index)) {
+    if (!validateIndex(index))
         return {};
-    }
 
     int row = index.row();
     int column = index.column();
@@ -110,7 +109,7 @@ QVariant ModFolderModel::data(const QModelIndex& index, int role) const
                     return at(row).loaders();
                 }
                 case McVersionsColumn: {
-                    return at(row).mcVersionsString();
+                    return at(row).mcVersions();
                 }
                 case ReleaseTypeColumn: {
                     return at(row).releaseType();
@@ -121,8 +120,6 @@ QVariant ModFolderModel::data(const QModelIndex& index, int role) const
                 case RequiresColumn: {
                     return at(row).requiresCount();
                 }
-                default:
-                    break;
             }
             break;
         case Qt::DecorationRole: {
@@ -158,11 +155,6 @@ QVariant ModFolderModel::data(const QModelIndex& index, int role) const
         case SizeColumn:
             mappedIndex = index.siblingAtColumn(ResourceFolderModel::SizeColumn);
             break;
-        case FileNameColumn:
-            mappedIndex = index.siblingAtColumn(ResourceFolderModel::FileNameColumn);
-            break;
-        default:
-            break;
     }
 
     if (mappedIndex.isValid()) {
@@ -190,7 +182,6 @@ QVariant ModFolderModel::headerData(int section, [[maybe_unused]] Qt::Orientatio
                 case SizeColumn:
                 case RequiredByColumn:
                 case RequiresColumn:
-                case FileNameColumn:
                     return columnNames().at(section);
                 default:
                     return QVariant();
@@ -222,8 +213,6 @@ QVariant ModFolderModel::headerData(int section, [[maybe_unused]] Qt::Orientatio
                     return tr("For each mod, the number of other mods which depend on it.");
                 case RequiresColumn:
                     return tr("For each mod, the number of other mods it depends on.");
-                case FileNameColumn:
-                    return tr("The file name of the mod.");
                 default:
                     return QVariant();
             }
@@ -234,12 +223,12 @@ QVariant ModFolderModel::headerData(int section, [[maybe_unused]] Qt::Orientatio
 
 int ModFolderModel::columnCount(const QModelIndex& parent) const
 {
-    return parent.isValid() ? 0 : NumColumns;
+    return parent.isValid() ? 0 : NUM_COLUMNS;
 }
 
 Task* ModFolderModel::createParseTask(Resource& resource)
 {
-    return new LocalModParseTask(m_nextResolutionTicket, resource.type(), resource.fileinfo());
+    return new LocalModParseTask(m_next_resolution_ticket, resource.type(), resource.fileinfo());
 }
 
 bool ModFolderModel::isValid()
@@ -247,23 +236,22 @@ bool ModFolderModel::isValid()
     return m_dir.exists() && m_dir.isReadable();
 }
 
-void ModFolderModel::onParseSucceeded(int ticket, const QString& resourceId)
+void ModFolderModel::onParseSucceeded(int ticket, QString mod_id)
 {
-    auto iter = m_activeParseTasks.constFind(ticket);
-    if (iter == m_activeParseTasks.constEnd()) {
+    auto iter = m_active_parse_tasks.constFind(ticket);
+    if (iter == m_active_parse_tasks.constEnd())
         return;
-    }
 
-    int row = m_resourcesIndex[resourceId];
+    int row = m_resources_index[mod_id];
 
-    const auto& parseTask = *iter;
-    auto* castTask = static_cast<LocalModParseTask*>(parseTask.get());
+    auto parse_task = *iter;
+    auto cast_task = static_cast<LocalModParseTask*>(parse_task.get());
 
-    Q_ASSERT(castTask->token() == ticket);
+    Q_ASSERT(cast_task->token() == ticket);
 
-    auto resource = find(resourceId);
+    auto resource = find(mod_id);
 
-    auto result = castTask->result();
+    auto result = cast_task->result();
     if (result && resource) {
         auto* mod = static_cast<Mod*>(resource.get());
         mod->finishResolvingWithDetails(std::move(result->details));
@@ -271,13 +259,11 @@ void ModFolderModel::onParseSucceeded(int ticket, const QString& resourceId)
     emit dataChanged(index(row, RequiresColumn), index(row, RequiredByColumn));
 }
 
-namespace {
-Mod* findById(QSet<Mod*> mods, const QString& resourceId)
+Mod* findById(QSet<Mod*> mods, QString modId)
 {
-    auto found = std::ranges::find_if(mods, [resourceId](Mod* m) { return m->mod_id() == resourceId; });
+    auto found = std::find_if(mods.begin(), mods.end(), [modId](Mod* m) { return m->mod_id() == modId; });
     return found != mods.end() ? *found : nullptr;
 }
-}  // namespace
 
 void ModFolderModel::onParseFinished()
 {
@@ -290,25 +276,25 @@ void ModFolderModel::onParseFinished()
     m_requires.clear();
     m_requiredBy.clear();
 
-    auto findByProjectID = [mods](const QVariant& modId, ModPlatform::ResourceProvider provider) -> Mod* {
-        auto found = std::ranges::find_if(mods, [modId, provider](Mod* m) {
+    auto findByProjectID = [mods](QVariant modId, ModPlatform::ResourceProvider provider) -> Mod* {
+        auto found = std::find_if(mods.begin(), mods.end(), [modId, provider](Mod* m) {
             return m->metadata() && m->metadata()->provider == provider && m->metadata()->project_id == modId;
         });
         return found != mods.end() ? *found : nullptr;
     };
-    for (auto* mod : mods) {
+    for (auto mod : mods) {
         auto id = mod->mod_id();
-        for (const auto& dep : mod->dependencies()) {
-            auto* d = findById(mods, dep);
+        for (auto dep : mod->dependencies()) {
+            auto d = findById(mods, dep);
             if (d) {
                 m_requires[id] << d;
                 m_requiredBy[d->mod_id()] << mod;
             }
         }
         if (mod->metadata()) {
-            for (const auto& dep : mod->metadata()->dependencies) {
+            for (auto dep : mod->metadata()->dependencies) {
                 if (dep.type == ModPlatform::DependencyType::REQUIRED) {
-                    auto* d = findByProjectID(dep.addonId, mod->metadata()->provider);
+                    auto d = findByProjectID(dep.addonId, mod->metadata()->provider);
                     if (d) {
                         m_requires[id] << d;
                         m_requiredBy[d->mod_id()] << mod;
@@ -317,20 +303,18 @@ void ModFolderModel::onParseFinished()
             }
         }
     }
-    for (auto* mod : mods) {
+    for (auto mod : mods) {
         auto id = mod->mod_id();
         if (mod->requiredByCount() != m_requiredBy[id].count() || mod->requiresCount() != m_requires[id].count()) {
             mod->setRequiredByCount(m_requiredBy[id].count());
             mod->setRequiresCount(m_requires[id].count());
-            int row = m_resourcesIndex[mod->internalId()];
+            int row = m_resources_index[mod->internal_id()];
             emit dataChanged(index(row), index(row, columnCount(QModelIndex()) - 1));
         }
     }
 }
 
-namespace {
-
-QSet<Mod*> collectMods(const QSet<Mod*>& mods, QHash<QString, QSet<Mod*>> relation, std::set<QString>& seen, bool shouldBeEnabled)
+QSet<Mod*> collectMods(QSet<Mod*> mods, QHash<QString, QSet<Mod*>> relation, std::set<QString>& seen, bool shouldBeEnabled)
 {
     QSet<Mod*> affectedList = {};
     QSet<Mod*> needToCheck = {};
@@ -356,13 +340,11 @@ QSet<Mod*> collectMods(const QSet<Mod*>& mods, QHash<QString, QSet<Mod*>> relati
     }
     return affectedList;
 }
-}  // namespace
 
 QModelIndexList ModFolderModel::getAffectedMods(const QModelIndexList& indexes, EnableAction action)
 {
-    if (indexes.isEmpty()) {
+    if (indexes.isEmpty())
         return {};
-    }
 
     QModelIndexList affectedList = {};
     auto affectedModsList = selectedMods(indexes);
@@ -382,9 +364,9 @@ QModelIndexList ModFolderModel::getAffectedMods(const QModelIndexList& indexes, 
             return {};  // this function should not be called with TOGGLE
         }
     }
-    for (auto* affected : affectedMods) {
+    for (auto affected : affectedMods) {
         auto affectedId = affected->mod_id();
-        auto row = m_resourcesIndex[affected->internalId()];
+        auto row = m_resources_index[affected->internal_id()];
         affectedList << index(row, 0);
     }
     return affectedList;
@@ -392,9 +374,8 @@ QModelIndexList ModFolderModel::getAffectedMods(const QModelIndexList& indexes, 
 
 bool ModFolderModel::setResourceEnabled(const QModelIndexList& indexes, EnableAction action)
 {
-    if (indexes.isEmpty()) {
+    if (indexes.isEmpty())
         return {};
-    }
 
     auto indexedModsList = selectedMods(indexes);
     auto indexedMods = QSet(indexedModsList.begin(), indexedModsList.end());
@@ -413,7 +394,7 @@ bool ModFolderModel::setResourceEnabled(const QModelIndexList& indexes, EnableAc
             break;
         }
         case EnableAction::TOGGLE: {
-            for (auto* mod : indexedMods) {
+            for (auto mod : indexedMods) {
                 if (mod->enabled()) {
                     toDisable << mod;
                 } else {
@@ -428,10 +409,10 @@ bool ModFolderModel::setResourceEnabled(const QModelIndexList& indexes, EnableAc
     auto requiredToDisable = collectMods(toDisable, m_requiredBy, seen, false);
 
     toDisable.removeIf([toEnable](Mod* m) { return toEnable.contains(m); });
-    auto toList = [this](const QSet<Mod*>& mods) {
+    auto toList = [this](QSet<Mod*> mods) {
         QModelIndexList list;
-        for (auto* mod : mods) {
-            auto row = m_resourcesIndex[mod->internalId()];
+        for (auto mod : mods) {
+            auto row = m_resources_index[mod->internal_id()];
             list << index(row, 0);
         }
         return list;
@@ -464,8 +445,8 @@ bool ModFolderModel::setResourceEnabled(const QModelIndexList& indexes, EnableAc
             yesButton = tr("Disable Required");
         }
 
-        auto* box = CustomMessageBox::selectable(nullptr, title, message, QMessageBox::Warning,
-                                                 QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::No);
+        auto box = CustomMessageBox::selectable(nullptr, title, message, QMessageBox::Warning,
+                                                QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::No);
         box->button(QMessageBox::No)->setText(noButton);
         box->button(QMessageBox::Yes)->setText(yesButton);
         auto response = box->exec();
@@ -483,23 +464,21 @@ bool ModFolderModel::setResourceEnabled(const QModelIndexList& indexes, EnableAc
     return disableStatus && enableStatus;
 }
 
-namespace {
-QStringList reqToList(const QSet<Mod*>& l)
+QStringList reqToList(QSet<Mod*> l)
 {
     QStringList req;
-    for (auto* m : l) {
+    for (auto m : l) {
         req << m->name();
     }
     return req;
 }
-}  // namespace
 
-QStringList ModFolderModel::requiresList(const QString& id)
+QStringList ModFolderModel::requiresList(QString id)
 {
     return reqToList(m_requires[id]);
 }
 
-QStringList ModFolderModel::requiredByList(const QString& id)
+QStringList ModFolderModel::requiredByList(QString id)
 {
     return reqToList(m_requiredBy[id]);
 }
@@ -508,7 +487,7 @@ bool ModFolderModel::deleteResources(const QModelIndexList& indexes)
 {
     auto deleteInvalid = [](QSet<Mod*>& mods) {
         for (auto it = mods.begin(); it != mods.end();) {
-            auto* mod = *it;
+            auto mod = *it;
             // the QFileInfo::exists is used instead of mod->fileinfo().exists
             // because the later somehow caches that the file exists
             if (!mod || !QFileInfo::exists(mod->fileinfo().absoluteFilePath())) {
@@ -519,14 +498,14 @@ bool ModFolderModel::deleteResources(const QModelIndexList& indexes)
         }
     };
     auto rsp = ResourceFolderModel::deleteResources(indexes);
-    for (auto* mod : allMods()) {
+    for (auto mod : allMods()) {
         auto id = mod->mod_id();
         deleteInvalid(m_requiredBy[id]);
         deleteInvalid(m_requires[id]);
         if (mod->requiredByCount() != m_requiredBy[id].count() || mod->requiresCount() != m_requires[id].count()) {
             mod->setRequiredByCount(m_requiredBy[id].count());
             mod->setRequiresCount(m_requires[id].count());
-            int row = m_resourcesIndex[mod->internalId()];
+            int row = m_resources_index[mod->internal_id()];
             emit dataChanged(index(row, RequiresColumn), index(row, RequiredByColumn));
         }
     }

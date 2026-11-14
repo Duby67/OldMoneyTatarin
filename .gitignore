@@ -32,6 +32,11 @@ build
 install
 /install-*
 
+# Локальные пакеты и патчноуты выпуска
+/dist/
+/artifacts/
+/release-notes.md
+
 # Ctags File
 tags
 

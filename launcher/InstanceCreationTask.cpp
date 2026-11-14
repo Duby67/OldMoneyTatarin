@@ -3,7 +3,6 @@
 #include <QDebug>
 #include <QFile>
 
-#include "Application.h"
 #include "InstanceTask.h"
 #include "minecraft/MinecraftLoadAndCheck.h"
 #include "tasks/SequentialTask.h"
@@ -39,9 +38,8 @@ void InstanceCreationTask::executeTask()
 
     m_instance = createInstance();
     if (!m_instance) {
-        if (m_abort) {
+        if (m_abort)
             return;
-        }
 
         qWarning() << "Instance creation failed!";
         if (!m_error_message.isEmpty()) {
@@ -65,9 +63,8 @@ void InstanceCreationTask::executeTask()
         qDebug() << "Removing old files";
 
         for (const QString& path : m_filesToRemove) {
-            if (!QFile::exists(path)) {
+            if (!QFile::exists(path))
                 continue;
-            }
 
             qDebug() << "Removing" << path;
 
@@ -84,10 +81,6 @@ void InstanceCreationTask::executeTask()
     }
 
     if (!m_abort) {
-        if (!APPLICATION->settings()->get("DownloadGameFilesDuringInstanceCreation").toBool()) {
-            emitSucceeded();
-            return;
-        }
         setAbortable(true);
         setAbortButtonText(tr("Skip"));
         qDebug() << "Downloading game files";
@@ -117,7 +110,7 @@ void InstanceCreationTask::executeTask()
     }
 }
 
-void InstanceCreationTask::scheduleToDelete(QWidget* parent, const QDir& dir, const QString& path, bool checkDisabled)
+void InstanceCreationTask::scheduleToDelete(QWidget* parent, QDir dir, QString path, bool checkDisabled)
 {
     if (path.isEmpty()) {
         return;

@@ -227,13 +227,6 @@
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QCheckBox" name="metaRefreshOnLaunchCB">
-            <property name="text">
-             <string>Refresh on launch</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </widget>
        </item>

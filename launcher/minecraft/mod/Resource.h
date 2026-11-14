@@ -35,6 +35,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include <QDateTime>
 #include <QFileInfo>
 #include <QObject>
@@ -45,7 +47,7 @@
 
 class BaseInstance;
 
-enum class ResourceType : std::uint8_t {
+enum class ResourceType {
     UNKNOWN,     //!< Indicates an unspecified resource type.
     ZIPFILE,     //!< The resource is a zip file containing the resource's class files.
     SINGLEFILE,  //!< The resource is a single file (not a zip file).
@@ -55,33 +57,32 @@ enum class ResourceType : std::uint8_t {
 
 QDebug operator<<(QDebug debug, ResourceType type);
 
-enum class ResourceStatus : std::uint8_t {
-    Installed,     // Both JAR and Metadata are present
-    NotInstalled,  // Only the Metadata is present
-    NoMetadata,    // Only the JAR is present
-    Unknown,       // Default status
+enum class ResourceStatus {
+    INSTALLED,      // Both JAR and Metadata are present
+    NOT_INSTALLED,  // Only the Metadata is present
+    NO_METADATA,    // Only the JAR is present
+    UNKNOWN,        // Default status
 };
 
 QDebug operator<<(QDebug debug, ResourceStatus status);
 
-enum class SortType : std::uint8_t {
-    Name,
-    Date,
-    Version,
-    Enabled,
-    PackFormat,
-    Provider,
-    Size,
-    Side,
-    McVersions,
-    Loaders,
-    ReleaseType,
-    Requires,
-    RequiredBy,
-    Filename,
+enum class SortType {
+    NAME,
+    DATE,
+    VERSION,
+    ENABLED,
+    PACK_FORMAT,
+    PROVIDER,
+    SIZE,
+    SIDE,
+    MC_VERSIONS,
+    LOADERS,
+    RELEASE_TYPE,
+    REQUIRES,
+    REQUIRED_BY,
 };
 
-enum class EnableAction : std::uint8_t { ENABLE, DISABLE, TOGGLE };
+enum class EnableAction { ENABLE, DISABLE, TOGGLE };
 
 /** General class for managed resources. It mirrors a file in disk, with some more info
  *  for display and house-keeping purposes.
@@ -93,19 +94,20 @@ class Resource : public QObject {
     Q_DISABLE_COPY(Resource)
    public:
     using Ptr = shared_qobject_ptr<Resource>;
+    using WeakPtr = QPointer<Resource>;
 
     Resource(QObject* parent = nullptr);
-    Resource(QFileInfo fileInfo);
-    Resource(const QString& filePath) : Resource(QFileInfo(filePath)) {}
+    Resource(QFileInfo file_info);
+    Resource(QString file_path) : Resource(QFileInfo(file_path)) {}
 
     ~Resource() override = default;
 
-    void setFile(QFileInfo fileInfo);
+    void setFile(QFileInfo file_info);
     void parseFile();
 
     auto fileinfo() const -> QFileInfo { return m_file_info; }
     auto dateTimeChanged() const -> QDateTime { return m_changed_date_time; }
-    auto internalId() const -> QString { return m_internal_id; }
+    auto internal_id() const -> QString { return m_internal_id; }
     auto type() const -> ResourceType { return m_type; }
     bool enabled() const { return m_enabled; }
     auto getOriginalFileName() const -> QString;
@@ -138,7 +140,7 @@ class Resource : public QObject {
      *  = 0: 'this' is equal to 'other'
      *  < 0: 'this' comes before 'other'
      */
-    virtual int compare(const Resource& other, SortType type = SortType::Name) const;
+    virtual int compare(const Resource& other, SortType type = SortType::NAME) const;
 
     /** Returns whether the given filter should filter out 'this' (false),
      *  or if such filter includes the Resource (true).
@@ -163,9 +165,9 @@ class Resource : public QObject {
     }
 
     // Delete all files of this resource.
-    auto destroy(const QDir& indexDir, bool preserveMetadata = false, bool attemptTrash = true) -> bool;
+    auto destroy(const QDir& index_dir, bool preserve_metadata = false, bool attempt_trash = true) -> bool;
     // Delete the metadata only.
-    auto destroyMetadata(const QDir& indexDir) -> void;
+    auto destroyMetadata(const QDir& index_dir) -> void;
 
     auto isSymLink() const -> bool { return m_file_info.isSymLink(); }
 
@@ -195,7 +197,7 @@ class Resource : public QObject {
     ResourceType m_type = ResourceType::UNKNOWN;
 
     /* Installation status of the resource. */
-    ResourceStatus m_status = ResourceStatus::Unknown;
+    ResourceStatus m_status = ResourceStatus::UNKNOWN;
 
     std::shared_ptr<Metadata::ModStruct> m_metadata = nullptr;
 
@@ -210,4 +212,5 @@ class Resource : public QObject {
     int m_resolution_ticket = 0;
     QString m_size_str;
     qint64 m_size_info;
+    std::uintmax_t m_hardLinkCount = 0;
 };
