@@ -103,15 +103,6 @@ set(CORE_SOURCES
     # Assertion helper
     AssertHelpers.h
 )
-if (UNIX AND NOT CYGWIN)
-    set(CORE_SOURCES
-    ${CORE_SOURCES}
-
-    # LibraryUtils
-    LibraryUtils.h
-    LibraryUtils.cpp
-    )
-endif()
 
 set(NET_SOURCES
     # network stuffs
@@ -1346,11 +1337,6 @@ else()
     target_link_libraries(Launcher_logic LibArchive::LibArchive)
 endif()
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    target_link_libraries(Launcher_logic
-        gamemode
-    )
-endif()
 
 target_link_libraries(Launcher_logic
     Qt${QT_VERSION_MAJOR}::Core
@@ -1361,7 +1347,6 @@ target_link_libraries(Launcher_logic
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::NetworkAuth
     Qt${QT_VERSION_MAJOR}::OpenGL
-    ${Launcher_QT_DBUS}
     ${Launcher_QT_LIBS}
 )
 target_link_libraries(Launcher_logic
@@ -1369,9 +1354,6 @@ target_link_libraries(Launcher_logic
     LocalPeer
     Launcher_rainbow
 )
-if (TARGET ${Launcher_QT_DBUS})
-    add_compile_definitions(WITH_QTDBUS)
-endif()
 
 add_executable(${Launcher_Name} WIN32 main.cpp ${LAUNCHER_RCS})
 

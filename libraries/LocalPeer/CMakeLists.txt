@@ -12,11 +12,6 @@ src/LockedFile.h
 include/LocalPeer.h
 )
 
-if(UNIX)
-    list(APPEND SINGLE_SOURCES
-        src/LockedFile_unix.cpp
-    )
-endif()
 
 if(WIN32)
     list(APPEND SINGLE_SOURCES

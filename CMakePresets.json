@@ -20,30 +20,6 @@
             }
         },
         {
-            "name": "linux",
-            "displayName": "Linux",
-            "inherits": [
-                "base"
-            ],
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            }
-        },
-        {
-            "name": "windows_mingw",
-            "displayName": "Windows (MinGW)",
-            "inherits": [
-                "base"
-            ],
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            }
-        },
-        {
             "name": "windows_msvc",
             "displayName": "Windows (MSVC)",
             "inherits": [
@@ -60,28 +36,6 @@
         }
     ],
     "buildPresets": [
-        {
-            "name": "linux",
-            "displayName": "Linux",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            },
-            "configurePreset": "linux",
-            "configuration": "Release"
-        },
-        {
-            "name": "windows_mingw",
-            "displayName": "Windows (MinGW)",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            },
-            "configurePreset": "windows_mingw",
-            "configuration": "Release"
-        },
         {
             "name": "windows_msvc",
             "displayName": "Windows (MSVC)",
@@ -110,34 +64,6 @@
                     "name": "^example64|example$"
                 }
             }
-        },
-        {
-            "name": "linux",
-            "displayName": "Linux",
-            "inherits": [
-                "base"
-            ],
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            },
-            "configurePreset": "linux",
-            "configuration": "Release"
-        },
-        {
-            "name": "windows_mingw",
-            "displayName": "Windows (MinGW)",
-            "inherits": [
-                "base"
-            ],
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            },
-            "configurePreset": "windows_mingw",
-            "configuration": "Release"
         },
         {
             "name": "windows_msvc",

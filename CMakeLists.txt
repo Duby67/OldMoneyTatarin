@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.25) # Required for features like `CMAKE_MSVC_DEBUG_INFORMATION_FORMAT`
 
 project(Launcher LANGUAGES C CXX)
+if(NOT WIN32 OR NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+    message(FATAL_ERROR "Only 64-bit Windows builds are supported")
+endif()
 
 string(COMPARE EQUAL "${CMAKE_SOURCE_DIR}" "${CMAKE_BUILD_DIR}" IS_IN_SOURCE_BUILD)
 if(IS_IN_SOURCE_BUILD)
@@ -16,9 +19,6 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/")
 
 # Output all executables and shared libs in the main build folder, not in subfolders.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
-if(UNIX)
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
-endif()
 set(CMAKE_JAVA_TARGET_OUTPUT_DIR ${PROJECT_BINARY_DIR}/jars)
 
 ######## Set compiler flags ########
@@ -221,24 +221,13 @@ option(Launcher_USE_PCH "Use precompiled headers where possible" ON)
 # Java downloader
 set(Launcher_ENABLE_JAVA_DOWNLOADER_DEFAULT ON)
 
-# Although we recommend enabling this, we cannot guarantee binary compatibility on
-# differing Linux/BSD/etc distributions. Downstream packagers should be explicitly opt-ing into this
-# feature if they know it will work with their distribution.
-if(UNIX)
-    set(Launcher_ENABLE_JAVA_DOWNLOADER_DEFAULT OFF)
-endif()
 
 # Java downloader
 option(Launcher_ENABLE_JAVA_DOWNLOADER "Build the java downloader feature" ${Launcher_ENABLE_JAVA_DOWNLOADER_DEFAULT})
 
 # Native libraries
-if(UNIX)
-    set(Launcher_GLFW_LIBRARY_NAME "libglfw.so" CACHE STRING "Name of native glfw library")
-    set(Launcher_OPENAL_LIBRARY_NAME "libopenal.so" CACHE STRING "Name of native openal library")
-elseif(WIN32)
-    set(Launcher_GLFW_LIBRARY_NAME "glfw.dll" CACHE STRING "Name of native glfw library")
-    set(Launcher_OPENAL_LIBRARY_NAME "OpenAL.dll" CACHE STRING "Name of native openal library")
-endif()
+set(Launcher_GLFW_LIBRARY_NAME "glfw.dll" CACHE STRING "Name of native glfw library")
+set(Launcher_OPENAL_LIBRARY_NAME "OpenAL.dll" CACHE STRING "Name of native openal library")
 
 # API Keys
 # NOTE: These API keys are here for convenience. If you rebrand this software or intend to break the terms of service
@@ -285,8 +274,6 @@ set(Launcher_BUILD_TIMESTAMP "${TODAY}")
 if(Launcher_QT_VERSION_MAJOR EQUAL 6)
     set(QT_VERSION_MAJOR 6)
     find_package(Qt6 6.8 REQUIRED COMPONENTS Core CoreTools Widgets Concurrent Network Test Xml NetworkAuth OpenGL)
-    find_package(Qt6 COMPONENTS DBus)
-    list(APPEND Launcher_QT_DBUS Qt6::DBus)
 else()
     message(FATAL_ERROR "Qt version ${Launcher_QT_VERSION_MAJOR} is not supported")
 endif()
@@ -299,10 +286,6 @@ endif()
 
 find_package(cmark REQUIRED)
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(gamemode REQUIRED IMPORTED_TARGET gamemode)
-endif()
 
 # Find libqrencode
 ## NOTE(@getchoo): Never use pkg-config with MSVC since the vcpkg port makes our install bundle fail to find the dll
@@ -352,37 +335,7 @@ endif()
     # Install "portable.txt" if selected component is "portable"
     install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/${Launcher_Portable_File}" DESTINATION "." COMPONENT portable EXCLUDE_FROM_ALL)
 
-if(UNIX)
-    include(KDEInstallDirs)
-
-    set(BINARY_DEST_DIR "bin")
-    set(LIBRARY_DEST_DIR "lib${LIB_SUFFIX}")
-    set(JARS_DEST_DIR "share/${Launcher_Name}")
-
-    # Set RPATH
-    SET(Launcher_BINARY_RPATH "$ORIGIN/")
-
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${Launcher_Desktop} DESTINATION ${KDE_INSTALL_APPDIR})
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${Launcher_MetaInfo} DESTINATION ${KDE_INSTALL_METAINFODIR})
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/${Launcher_SVG} DESTINATION "${KDE_INSTALL_ICONDIR}/hicolor/scalable/apps")
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/${Launcher_PNG_256} DESTINATION "${KDE_INSTALL_ICONDIR}/hicolor/256x256/apps" RENAME "${Launcher_AppID}.png")
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${Launcher_MIMEInfo} DESTINATION ${KDE_INSTALL_MIMEDIR})
-
-    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/launcher/qtlogging.ini" DESTINATION "share/${Launcher_Name}")
-
-    set(PLUGIN_DEST_DIR "plugins")
-    set(BUNDLE_DEST_DIR ".")
-    set(RESOURCES_DEST_DIR ".")
-
-    if(Launcher_ManPage)
-        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${Launcher_ManPage} DESTINATION "${KDE_INSTALL_MANDIR}/man6")
-    endif()
-
-    # Install basic runner script if component "portable" is selected
-    configure_file(launcher/Launcher.in "${CMAKE_CURRENT_BINARY_DIR}/LauncherScript" @ONLY)
-    install(PROGRAMS "${CMAKE_CURRENT_BINARY_DIR}/LauncherScript" DESTINATION "." RENAME ${Launcher_Name} COMPONENT portable EXCLUDE_FROM_ALL)
-
-elseif(WIN32)
+if(WIN32)
     set(BINARY_DEST_DIR ".")
     set(LIBRARY_DEST_DIR ".")
     set(PLUGIN_DEST_DIR ".")
