@@ -44,17 +44,10 @@ if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
     )
 
     add_link_options(
-        # /LTCG allows for linking wholy optimizated programs
         # /MANIFEST:NO disables generating a manifest file, we instead provide our own
         # /STACK sets the stack reserve size, ATL's pack list needs 3-4 MiB as of November 2022, provide 8 MiB
-        "$<$<COMPILE_LANGUAGE:C,CXX>:/LTCG;/MANIFEST:NO;/STACK:8388608>"
+        "$<$<COMPILE_LANGUAGE:C,CXX>:/MANIFEST:NO;/STACK:8388608>"
     )
-
-    # /GL enables whole program optimizations
-    # NOTE: With Clang, this is implemented as regular LTO and only used during linking
-    if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-        add_compile_options("$<$<AND:$<CONFIG:Release,RelWithDebInfo>,$<COMPILE_LANGUAGE:C,CXX>>:/GL>")
-    endif()
 
     # See https://github.com/ccache/ccache/issues/1040
     # TODO(@getchoo): Is sccache affected by this? Would be nice to use `ProgramDatabase`....
