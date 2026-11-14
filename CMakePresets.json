@@ -9,12 +9,12 @@
         {
             "name": "base",
             "hidden": true,
-            "binaryDir": "build",
-            "installDir": "install",
+            "binaryDir": "${sourceDir}/dist/build/${presetName}",
+            "installDir": "${sourceDir}/dist/app/${presetName}",
             "generator": "Ninja Multi-Config",
             "cacheVariables": {
-                "Launcher_BUILD_ARTIFACT": "$penv{ARTIFACT_NAME}",
-                "Launcher_BUILD_PLATFORM": "$penv{BUILD_PLATFORM}",
+                "Launcher_BUILD_ARTIFACT": "",
+                "Launcher_BUILD_PLATFORM": "OldMoneyTatarin",
                 "Launcher_ENABLE_JAVA_DOWNLOADER": "ON",
                 "ENABLE_LTO": "ON"
             }
@@ -68,7 +68,8 @@
                 "lhs": "${hostSystemName}",
                 "rhs": "Linux"
             },
-            "configurePreset": "linux"
+            "configurePreset": "linux",
+            "configuration": "Release"
         },
         {
             "name": "windows_mingw",
@@ -78,7 +79,8 @@
                 "lhs": "${hostSystemName}",
                 "rhs": "Windows"
             },
-            "configurePreset": "windows_mingw"
+            "configurePreset": "windows_mingw",
+            "configuration": "Release"
         },
         {
             "name": "windows_msvc",
@@ -88,7 +90,8 @@
                 "lhs": "${hostSystemName}",
                 "rhs": "Windows"
             },
-            "configurePreset": "windows_msvc"
+            "configurePreset": "windows_msvc",
+            "configuration": "Release"
         }
     ],
     "testPresets": [
@@ -119,7 +122,8 @@
                 "lhs": "${hostSystemName}",
                 "rhs": "Linux"
             },
-            "configurePreset": "linux"
+            "configurePreset": "linux",
+            "configuration": "Release"
         },
         {
             "name": "windows_mingw",
@@ -132,7 +136,8 @@
                 "lhs": "${hostSystemName}",
                 "rhs": "Windows"
             },
-            "configurePreset": "windows_mingw"
+            "configurePreset": "windows_mingw",
+            "configuration": "Release"
         },
         {
             "name": "windows_msvc",
@@ -145,7 +150,8 @@
                 "lhs": "${hostSystemName}",
                 "rhs": "Windows"
             },
-            "configurePreset": "windows_msvc"
+            "configurePreset": "windows_msvc",
+            "configuration": "Release"
         }
     ]
 }
