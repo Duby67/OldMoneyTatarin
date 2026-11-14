@@ -103,7 +103,7 @@ set(CORE_SOURCES
     # Assertion helper
     AssertHelpers.h
 )
-if (UNIX AND NOT CYGWIN AND NOT APPLE)
+if (UNIX AND NOT CYGWIN)
     set(CORE_SOURCES
     ${CORE_SOURCES}
 
@@ -186,10 +186,6 @@ set(UPDATE_SOURCES
     updater/ExternalUpdater.h
 )
 
-set(MAC_UPDATE_SOURCES
-    updater/MacSparkleUpdater.h
-    updater/MacSparkleUpdater.mm
-)
 
 set(PRISM_UPDATE_SOURCES
     updater/PrismExternalUpdater.h
@@ -799,12 +795,7 @@ set(LOGIC_SOURCES
     ${TECHNIC_SOURCES}
     ${ATLAUNCHER_SOURCES}
 )
-
-if(APPLE AND Launcher_ENABLE_UPDATER)
-    set (LOGIC_SOURCES ${LOGIC_SOURCES} ${MAC_UPDATE_SOURCES})
-else()
     set (LOGIC_SOURCES ${LOGIC_SOURCES} ${PRISM_UPDATE_SOURCES})
-endif()
 
 SET(LAUNCHER_SOURCES
     # Application base
@@ -1193,31 +1184,12 @@ SET(LAUNCHER_SOURCES
     ui/instanceview/VisualGroup.cpp
     ui/instanceview/VisualGroup.h
 )
-
-if (APPLE)
-    set(LAUNCHER_SOURCES
-        ${LAUNCHER_SOURCES}
-        ui/themes/ThemeManager.mm
-    )
-endif()
-
-if (NOT Apple)
     set(LAUNCHER_SOURCES
     ${LAUNCHER_SOURCES}
 
     ui/dialogs/UpdateAvailableDialog.h
     ui/dialogs/UpdateAvailableDialog.cpp
 )
-endif()
-
-if (APPLE)
-    set(LAUNCHER_SOURCES
-        ${LAUNCHER_SOURCES}
-
-        macsandbox/SecurityBookmarkFileAccess.h
-        macsandbox/SecurityBookmarkFileAccess.mm
-    )
-endif()
 
 if(WIN32)
     set(LAUNCHER_SOURCES
@@ -1295,10 +1267,7 @@ qt_wrap_ui(LAUNCHER_UI
 qt_wrap_ui(PRISM_UPDATE_UI
     ui/dialogs/UpdateAvailableDialog.ui
 )
-
-if (NOT Apple)
     set (LAUNCHER_UI ${LAUNCHER_UI} ${PRISM_UPDATE_UI})
-endif()
 
 qt_add_resources(LAUNCHER_RESOURCES
     resources/backgrounds/backgrounds.qrc
@@ -1309,7 +1278,6 @@ qt_add_resources(LAUNCHER_RESOURCES
     resources/pe_blue/pe_blue.qrc
     resources/breeze_dark/breeze_dark.qrc
     resources/breeze_light/breeze_light.qrc
-    resources/OSX/OSX.qrc
     resources/iOS/iOS.qrc
     resources/flat/flat.qrc
     resources/flat_white/flat_white.qrc
@@ -1405,30 +1373,7 @@ if (TARGET ${Launcher_QT_DBUS})
     add_compile_definitions(WITH_QTDBUS)
 endif()
 
-if(APPLE)
-    set(CMAKE_MACOSX_RPATH 1)
-    set(CMAKE_INSTALL_RPATH "@loader_path/../Frameworks/")
-
-    if(Launcher_ENABLE_UPDATER)
-        file(DOWNLOAD ${MACOSX_SPARKLE_DOWNLOAD_URL} ${CMAKE_BINARY_DIR}/Sparkle.tar.xz EXPECTED_HASH SHA256=${MACOSX_SPARKLE_SHA256})
-        file(ARCHIVE_EXTRACT INPUT ${CMAKE_BINARY_DIR}/Sparkle.tar.xz DESTINATION ${CMAKE_BINARY_DIR}/frameworks/Sparkle)
-
-        find_library(SPARKLE_FRAMEWORK Sparkle "${CMAKE_BINARY_DIR}/frameworks/Sparkle")
-        add_compile_definitions(SPARKLE_ENABLED)
-    endif()
-
-    target_link_libraries(Launcher_logic
-        "-framework AppKit"
-        "-framework Carbon"
-        "-framework Foundation"
-        "-framework ApplicationServices"
-    )
-    if(Launcher_ENABLE_UPDATER)
-        target_link_libraries(Launcher_logic ${SPARKLE_FRAMEWORK})
-    endif()
-endif()
-
-add_executable(${Launcher_Name} MACOSX_BUNDLE WIN32 main.cpp ${LAUNCHER_RCS})
+add_executable(${Launcher_Name} WIN32 main.cpp ${LAUNCHER_RCS})
 
 if(${Launcher_USE_PCH})
     target_precompile_headers(${Launcher_Name} REUSE_FROM Launcher_logic)
@@ -1568,13 +1513,6 @@ if(WIN32 OR (DEFINED Launcher_BUILD_FILELINKER AND Launcher_BUILD_FILELINKER))
     endif()
 endif()
 
-if (UNIX AND APPLE AND Launcher_ENABLE_UPDATER)
-    # Add Sparkle updater
-    # It has to be copied here instead of just allowing fixup_bundle to install it, otherwise essential parts of
-    # the framework aren't installed
-    install(DIRECTORY ${MACOSX_SPARKLE_DIR}/Sparkle.framework DESTINATION ${FRAMEWORK_DEST_DIR} USE_SOURCE_PERMISSIONS)
-endif()
-
 # Set basic compiler warning/error flags for all targets
 get_property(Launcher_TARGETS DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY BUILDSYSTEM_TARGETS)
 foreach(target ${Launcher_TARGETS})
@@ -1600,7 +1538,7 @@ endif()
 #### The bundle mess! ####
 # Bundle utilities are used to complete packages for different platforms - they add all the libraries that would otherwise be missing on the target system.
 # NOTE: it seems that this absolutely has to be here, and nowhere else.
-if(WIN32 OR (UNIX AND APPLE))
+if(WIN32)
     if(WIN32)
         set(QT_DEPLOY_TOOL_OPTIONS "--no-opengl-sw --no-quick-import --no-system-d3d-compiler --no-system-dxc-compiler --skip-plugin-types generic,networkinformation")
     endif()
