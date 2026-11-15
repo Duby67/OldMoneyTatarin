@@ -1285,7 +1285,7 @@ if(${Launcher_USE_PCH})
     target_precompile_headers(Launcher_logic PRIVATE ${PRECOMPILED_HEADERS})
 endif()
 
-target_link_libraries(Launcher_logic
+target_link_libraries(Launcher_logic PUBLIC
     Launcher_murmur2
     nbt++
     ${ZLIB_LIBRARIES}
@@ -1295,25 +1295,25 @@ target_link_libraries(Launcher_logic
 )
 
 if(TARGET PkgConfig::libqrencode)
-    target_link_libraries(Launcher_logic PkgConfig::libqrencode)
+    target_link_libraries(Launcher_logic PUBLIC PkgConfig::libqrencode)
 else()
     target_include_directories(Launcher_logic PRIVATE ${LIBQRENCODE_INCLUDE_DIR})
-    target_link_libraries(Launcher_logic ${LIBQRENCODE_LIBRARIES})
+    target_link_libraries(Launcher_logic PUBLIC ${LIBQRENCODE_LIBRARIES})
 endif()
 
 if(TARGET PkgConfig::tomlplusplus)
-    target_link_libraries(Launcher_logic PkgConfig::tomlplusplus)
+    target_link_libraries(Launcher_logic PUBLIC PkgConfig::tomlplusplus)
 else()
-    target_link_libraries(Launcher_logic tomlplusplus::tomlplusplus)
+    target_link_libraries(Launcher_logic PUBLIC tomlplusplus::tomlplusplus)
 endif()
 if(TARGET PkgConfig::libarchive)
-    target_link_libraries(Launcher_logic PkgConfig::libarchive)
+    target_link_libraries(Launcher_logic PUBLIC PkgConfig::libarchive)
 else()
-    target_link_libraries(Launcher_logic LibArchive::LibArchive)
+    target_link_libraries(Launcher_logic PUBLIC LibArchive::LibArchive)
 endif()
 
 
-target_link_libraries(Launcher_logic
+target_link_libraries(Launcher_logic PUBLIC
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Xml
     Qt${QT_VERSION_MAJOR}::Network
@@ -1324,7 +1324,7 @@ target_link_libraries(Launcher_logic
     Qt${QT_VERSION_MAJOR}::OpenGL
     ${Launcher_QT_LIBS}
 )
-target_link_libraries(Launcher_logic
+target_link_libraries(Launcher_logic PUBLIC
     cmark::cmark
     LocalPeer
     Launcher_rainbow
@@ -1473,6 +1473,10 @@ endif()
 # Set basic compiler warning/error flags for all targets
 get_property(Launcher_TARGETS DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY BUILDSYSTEM_TARGETS)
 foreach(target ${Launcher_TARGETS})
+    get_target_property(target_type ${target} TYPE)
+    if(target_type STREQUAL "UTILITY" OR target_type STREQUAL "INTERFACE_LIBRARY")
+        continue()
+    endif()
     message(STATUS "Enabling all warnings as errors for target '${target}'")
     if (CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
         target_compile_options(${target} PRIVATE /W4 /WX /permissive-)
