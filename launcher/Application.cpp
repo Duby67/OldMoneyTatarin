@@ -717,7 +717,7 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
         m_settings->registerSetting("JsonEditor", QString());
 
         // Language
-        m_settings->registerSetting("Language", QString());
+        m_settings->registerSetting("Language", QStringLiteral("ru"));
         m_settings->registerSetting("UseSystemLocale", false);
 
         // Console
@@ -1027,7 +1027,7 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
     // load translations
     {
         m_translations.reset(new TranslationsModel("translations"));
-        m_translations->downloadIndex();
+
         qInfo() << "Your language is" << m_translations->selectedLanguage();
         qInfo() << "<> Translations loaded.";
     }

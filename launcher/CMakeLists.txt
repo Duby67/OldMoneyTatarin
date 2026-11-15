@@ -1303,6 +1303,21 @@ endif()
 
 # Add executable
 add_library(Launcher_logic STATIC ${LOGIC_SOURCES} ${LAUNCHER_SOURCES} ${LAUNCHER_UI} ${LAUNCHER_RESOURCES})
+find_package(Qt6 REQUIRED COMPONENTS LinguistTools)
+set(TATARIN_RU_QM "${CMAKE_CURRENT_BINARY_DIR}/ru.qm")
+add_custom_command(OUTPUT "${TATARIN_RU_QM}"
+    COMMAND Qt6::lrelease "${CMAKE_CURRENT_SOURCE_DIR}/translations/bundled/ru.ts" -qm "${TATARIN_RU_QM}"
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/translations/bundled/ru.ts"
+    VERBATIM)
+set_source_files_properties("${TATARIN_RU_QM}" PROPERTIES GENERATED TRUE)
+add_custom_target(tatarin_translations DEPENDS "${TATARIN_RU_QM}")
+add_dependencies(Launcher_logic tatarin_translations)
+qt_add_resources(Launcher_logic bundled_translations
+    PREFIX "/translations" BASE "${CMAKE_CURRENT_BINARY_DIR}"
+    FILES "${TATARIN_RU_QM}")
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/translations/bundled/LICENSE"
+    DESTINATION "licenses/translations" RENAME LICENSE)
+
 target_include_directories(Launcher_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_definitions(Launcher_logic PUBLIC LAUNCHER_APPLICATION)
 

@@ -28,7 +28,7 @@ bool LanguageWizardPage::wantsRefreshButton()
 void LanguageWizardPage::refresh()
 {
     auto translations = APPLICATION->translations();
-    translations->downloadIndex();
+
 }
 
 bool LanguageWizardPage::validatePage()

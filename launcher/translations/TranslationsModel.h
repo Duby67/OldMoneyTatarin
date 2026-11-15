@@ -40,7 +40,6 @@ class TranslationsModel : public QAbstractListModel {
     QModelIndex selectedIndex() const;
     QString selectedLanguage() const;
 
-    void downloadIndex();
     void setUseSystemLocale(bool useSystemLocale) const;
 
    private:
@@ -49,14 +48,8 @@ class TranslationsModel : public QAbstractListModel {
     QList<Language>::Iterator findLanguage(const QString& key) const;
     std::optional<Language> findLanguageAsOptional(const QString& key) const;
     void reloadLocalFiles();
-    void downloadTranslation(const QString& key);
-    void downloadNext();
 
    private slots:
-    void indexReceived();
-    void indexFailed(const QString& reason) const;
-    void dlFailed(const QString& reason);
-    void dlGood();
     void translationDirChanged(const QString& path);
 
    private: /* data */

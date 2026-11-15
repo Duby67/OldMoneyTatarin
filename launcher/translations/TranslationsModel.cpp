@@ -42,9 +42,6 @@
 
 #include "BuildConfig.h"
 #include "FileSystem.h"
-#include "Json.h"
-#include "net/ChecksumValidator.h"
-#include "net/NetJob.h"
 
 #include "POTranslator.h"
 
@@ -164,11 +161,6 @@ struct TranslationsModel::Private {
     std::unique_ptr<QTranslator> m_qtTranslator;
     std::unique_ptr<QTranslator> m_appTranslator;
 
-    Net::Download* m_indexTask = nullptr;
-    QString m_downloadingTranslation;
-    NetJob::Ptr m_downloadJob;
-    NetJob::Ptr m_indexJob;
-    QString m_nextDownload;
 
     QFileSystemWatcher* watcher = nullptr;
 
@@ -182,6 +174,7 @@ TranslationsModel::TranslationsModel(const QString& path, QObject* parent) : QAb
     d->m_selectedLanguage = APPLICATION->settings()->get("Language").toString();
     FS::ensureFolderPathExists(path);
     reloadLocalFiles();
+    selectLanguage(d->m_selectedLanguage);
 
     d->watcher = new QFileSystemWatcher(this);
     connect(d->watcher, &QFileSystemWatcher::directoryChanged, this, &TranslationsModel::translationDirChanged);
@@ -199,79 +192,20 @@ void TranslationsModel::translationDirChanged(const QString& path)
     selectLanguage(selectedLanguage());
 }
 
-void TranslationsModel::indexReceived()
-{
-    qDebug() << "Got translations index!";
-    d->m_indexJob.reset();
-    reloadLocalFiles();
 
-    if (d->m_noLanguageSet) {
-        auto language = getSystemLocaleName();
-        if (!findLanguageAsOptional(language).has_value()) {
-            language = getSystemLanguage();
-        }
-        selectLanguage(language);
-        APPLICATION->settings()->set("Language", selectedLanguage());
-        d->m_noLanguageSet = false;
-    }
-
-    if (selectedLanguage() != g_defaultLangCode) {
-        updateLanguage(selectedLanguage());
-    }
-}
 
 namespace {
-void readIndex(const QString& path, QMap<QString, Language>& languages)
-{
-    QByteArray data;
-    try {
-        data = FS::read(path);
-    } catch ([[maybe_unused]] const Exception& e) {
-        qCritical() << "Translations Download Failed: index file not readable";
-        return;
-    }
 
-    try {
-        auto toplevelDoc = Json::requireDocument(data);
-        auto doc = Json::requireObject(toplevelDoc);
-        auto fileType = Json::requireString(doc, "file_type");
-        if (fileType != "MMC-TRANSLATION-INDEX") {
-            qCritical() << "Translations Download Failed: index file is of unknown file type" << fileType;
-            return;
-        }
-        auto version = Json::requireInteger(doc, "version");
-        if (version > 2) {
-            qCritical() << "Translations Download Failed: index file is of unknown format version" << fileType;
-            return;
-        }
-        auto langObjs = Json::requireObject(doc, "languages");
-        for (auto iter = langObjs.begin(); iter != langObjs.end(); ++iter) {
-            Language lang(iter.key());
-
-            auto langObj = Json::requireObject(iter.value());
-            lang.setTranslationStats(langObj["translated"].toInt(), langObj["untranslated"].toInt(), langObj["fuzzy"].toInt());
-            lang.fileName = Json::requireString(langObj, "file");
-            lang.fileSha1 = Json::requireString(langObj, "sha1");
-            lang.fileSize = Json::requireInteger(langObj, "size");
-
-            languages.insert(lang.key, lang);
-        }
-    } catch ([[maybe_unused]] Json::JsonException& e) {
-        qCritical() << "Translations Download Failed: index file could not be parsed as json";
-    }
-}
 }  // namespace
 
 void TranslationsModel::reloadLocalFiles()
 {
     QMap<QString, Language> languages = { { g_defaultLangCode, Language(g_defaultLangCode) } };
 
-    const auto indexPath = d->m_dir.absoluteFilePath("index_v2.json");
-    if (!QFileInfo::exists(indexPath)) {
-        downloadIndex();
-        return;
-    }
-    readIndex(indexPath, languages);
+    Language russian(QStringLiteral("ru"));
+    russian.localFileType = FileType::Qm;
+    russian.updated = true;
+    languages.insert(russian.key, russian);
     auto entries = d->m_dir.entryInfoList({ "mmc_*.qm", "*.po" }, QDir::Files | QDir::NoDotAndDotDot);
     for (auto& entry : entries) {
         auto completeSuffix = entry.completeSuffix();
@@ -295,9 +229,9 @@ void TranslationsModel::reloadLocalFiles()
                 language.localFileType = fileType;
             }
         } else {
-            if (fileType == FileType::Po) {
+            if (fileType == FileType::Po || fileType == FileType::Qm) {
                 Language localFound(langCode);
-                localFound.localFileType = FileType::Po;
+                localFound.localFileType = fileType;
                 languages.insert(langCode, localFound);
             }
         }
@@ -454,8 +388,9 @@ bool TranslationsModel::selectLanguage(QString key) const
     }
 
     if (!langPtr.has_value()) {
-        qWarning() << "Selected invalid language" << key << ", defaulting to" << g_defaultLangCode;
-        langCode = g_defaultLangCode;
+        qWarning() << "Selected invalid language" << key << ", defaulting to" << "ru";
+        langCode = QStringLiteral("ru");
+        langPtr = findLanguageAsOptional(langCode);
     } else {
         langCode = langPtr->key;
     }
@@ -516,7 +451,10 @@ bool TranslationsModel::selectLanguage(QString key) const
         }
     } else if (langPtr->localFileType == FileType::Qm) {
         d->m_appTranslator = std::make_unique<QTranslator>();
-        if (d->m_appTranslator->load("mmc_" + langCode, d->m_dir.path())) {
+        const bool loaded = langCode == QStringLiteral("ru")
+            ? d->m_appTranslator->load(QStringLiteral(":/translations/ru.qm"))
+            : d->m_appTranslator->load("mmc_" + langCode, d->m_dir.path());
+        if (loaded) {
             qDebug() << "Loading Application Language File for" << langCode.toLocal8Bit().constData() << "...";
             if (!QCoreApplication::installTranslator(d->m_appTranslator.get())) {
                 qCritical() << "Installing Application Language File failed.";
@@ -548,98 +486,9 @@ QString TranslationsModel::selectedLanguage() const
     return d->m_selectedLanguage;
 }
 
-void TranslationsModel::downloadIndex()
-{
-    if (d->m_indexJob || d->m_downloadJob) {
-        return;
-    }
-    qDebug() << "Downloading Translations Index...";
-    d->m_indexJob.reset(new NetJob("Translations Index", APPLICATION->network()));
-    const MetaEntryPtr entry = APPLICATION->metacache()->resolveEntry("translations", "index_v2.json");
-    entry->setStale(true);
-    auto task = Net::Download::makeCached(QUrl(BuildConfig.TRANSLATION_FILES_URL + "index_v2.json"), entry);
-    d->m_indexTask = task.get();
-    d->m_indexJob->addNetAction(task);
-    d->m_indexJob->setAskRetry(false);
-    connect(d->m_indexJob.get(), &NetJob::failed, this, &TranslationsModel::indexFailed);
-    connect(d->m_indexJob.get(), &NetJob::succeeded, this, &TranslationsModel::indexReceived);
-    d->m_indexJob->start();
-}
+
 
 void TranslationsModel::updateLanguage(const QString& key)
 {
-    if (key == g_defaultLangCode) {
-        qWarning() << "Cannot update builtin language" << key;
-        return;
-    }
-    auto found = findLanguageAsOptional(key);
-    if (!found.has_value()) {
-        qWarning() << "Cannot update invalid language" << key;
-        return;
-    }
-    if (!found->updated) {
-        downloadTranslation(key);
-    }
-}
-
-void TranslationsModel::downloadTranslation(const QString& key)
-{
-    if (d->m_downloadJob) {
-        d->m_nextDownload = key;
-        return;
-    }
-    auto lang = findLanguageAsOptional(key);
-    if (!lang.has_value()) {
-        qWarning() << "Will not download an unknown translation" << key;
-        return;
-    }
-
-    d->m_downloadingTranslation = key;
-    const MetaEntryPtr entry = APPLICATION->metacache()->resolveEntry("translations", "mmc_" + key + ".qm");
-    entry->setStale(true);
-
-    auto dl = Net::Download::makeCached(QUrl(BuildConfig.TRANSLATION_FILES_URL + lang->fileName), entry);
-    dl->addValidator(new Net::ChecksumValidator(QCryptographicHash::Sha1, lang->fileSha1));
-    dl->setProgress(dl->getProgress(), lang->fileSize);
-
-    d->m_downloadJob.reset(new NetJob("Translation for " + key, APPLICATION->network()));
-    d->m_downloadJob->addNetAction(dl);
-    d->m_downloadJob->setAskRetry(false);
-
-    connect(d->m_downloadJob.get(), &NetJob::succeeded, this, &TranslationsModel::dlGood);
-    connect(d->m_downloadJob.get(), &NetJob::failed, this, &TranslationsModel::dlFailed);
-
-    d->m_downloadJob->start();
-}
-
-void TranslationsModel::downloadNext()
-{
-    if (!d->m_nextDownload.isEmpty()) {
-        downloadTranslation(d->m_nextDownload);
-        d->m_nextDownload.clear();
-    }
-}
-
-void TranslationsModel::dlFailed(const QString& reason)
-{
-    qCritical() << "Translations Download Failed:" << reason;
-    d->m_downloadJob.reset();
-    downloadNext();
-}
-
-void TranslationsModel::dlGood()
-{
-    qDebug() << "Got translation:" << d->m_downloadingTranslation;
-
-    if (d->m_downloadingTranslation == d->m_selectedLanguage) {
-        selectLanguage(d->m_selectedLanguage);
-    }
-    d->m_downloadJob.reset();
-    downloadNext();
-}
-
-void TranslationsModel::indexFailed(const QString& reason) const
-{
-    qCritical() << "Translations Index Download Failed:" << reason;
-    d->m_indexJob.reset();
+    selectLanguage(key);
 }
