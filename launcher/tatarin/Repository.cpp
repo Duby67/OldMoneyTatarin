@@ -108,12 +108,18 @@ void download(QNetworkAccessManager* network, const QUrl& source, const QJsonObj
 }
 }  // namespace
 
+QString defaultSource()
+{
+    return QStringLiteral("https://play.fleexpoint.space:8443/");
+}
+
 QUrl sourceUrl(const QString& text)
 {
     QUrl url(text.trimmed());
-    if (!url.isValid() || url.scheme() != "http" || url.host() != "127.0.0.1" ||
+    const bool transportAllowed = url.scheme() == "https" || (url.scheme() == "http" && url.host() == "127.0.0.1");
+    if (!url.isValid() || !transportAllowed || url.host().isEmpty() || url.port(443) < 1 ||
         !url.userInfo().isEmpty() || url.hasQuery() || url.hasFragment() || url.path() != "/")
-        fail(QStringLiteral("Локальный источник должен иметь вид http://127.0.0.1:18765/. Публичные источники пока отключены"));
+        fail(QStringLiteral("Источник должен иметь вид https://имя-сервера[:порт]/. HTTP разрешён только на 127.0.0.1"));
     return url;
 }
 

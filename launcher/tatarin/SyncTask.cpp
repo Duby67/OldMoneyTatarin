@@ -26,7 +26,13 @@ void SyncTask::executeTask()
     try {
         QJsonObject value;
         try {
-            const auto source = sourceUrl(m_instance->settings()->get("ManagedPackURL").toString());
+            auto sourceText = m_instance->settings()->get("ManagedPackURL").toString();
+            // Переносим только известную тестовую раздачу нашей сборки.
+            const bool migrateSource = sourceText == QStringLiteral("http://127.0.0.1:18765/") &&
+                                       m_instance->getManagedPackID() == QStringLiteral("regionalworlds");
+            if (migrateSource)
+                sourceText = defaultSource();
+            const auto source = sourceUrl(sourceText);
             value = synchronize(APPLICATION->network(), source, m_instance->getManagedPackID(),
                                 m_instance->instanceRoot(), m_instance->gameRoot(), [this] { return m_cancelled; },
                                 [this](qint64 current, qint64 total) { setProgress(current, total); },
@@ -35,6 +41,8 @@ void SyncTask::executeTask()
                                     setStatus(applying ? QStringLiteral("Применение или восстановление TATARIN") :
                                                         QStringLiteral("Проверка и загрузка файлов TATARIN"));
                                 });
+            if (migrateSource)
+                m_instance->settings()->set("ManagedPackURL", source.toString());
         } catch (const NetworkError&) {
             if (m_cancelled)
                 throw;
