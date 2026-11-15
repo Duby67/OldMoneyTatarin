@@ -90,7 +90,6 @@
 #include "MinecraftLoadAndCheck.h"
 #include "PackProfile.h"
 
-#include "tools/BaseProfiler.h"
 
 #include <QActionGroup>
 #include <QMainWindow>
@@ -330,32 +329,7 @@ void MinecraftInstance::populateLaunchMenu(QMenu* menu)
     connect(normalLaunchOffline, &QAction::triggered, [this] { APPLICATION->launch(this, LaunchMode::Offline); });
     connect(normalLaunchDemo, &QAction::triggered, [this] { APPLICATION->launch(this, LaunchMode::Demo); });
 
-    QString profilersTitle = tr("Profilers");
-    menu->addSeparator()->setText(profilersTitle);
 
-    auto profilers = new QActionGroup(menu);
-    profilers->setExclusive(true);
-    connect(profilers, &QActionGroup::triggered, [this](QAction* action) {
-        settings()->set("Profiler", action->data());
-        emit profilerChanged();
-    });
-
-    QAction* noProfilerAction = menu->addAction(tr("&No Profiler"));
-    noProfilerAction->setData("");
-    noProfilerAction->setCheckable(true);
-    noProfilerAction->setChecked(true);
-    profilers->addAction(noProfilerAction);
-
-    for (auto profiler = APPLICATION->profilers().begin(); profiler != APPLICATION->profilers().end(); profiler++) {
-        QAction* profilerAction = menu->addAction(profiler.value()->name());
-        profilers->addAction(profilerAction);
-        profilerAction->setData(profiler.key());
-        profilerAction->setCheckable(true);
-        profilerAction->setChecked(settings()->get("Profiler").toString() == profiler.key());
-
-        QString error;
-        profilerAction->setEnabled(profiler.value()->check(&error));
-    }
 }
 
 QString MinecraftInstance::gameRoot() const

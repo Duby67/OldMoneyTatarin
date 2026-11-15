@@ -452,16 +452,8 @@ set(TOOLS_SOURCES
     # Tools
     tools/BaseExternalTool.cpp
     tools/BaseExternalTool.h
-    tools/BaseProfiler.cpp
-    tools/BaseProfiler.h
-    tools/JProfiler.cpp
-    tools/JProfiler.h
-    tools/JVisualVM.cpp
-    tools/JVisualVM.h
     tools/MCEditTool.cpp
     tools/MCEditTool.h
-    tools/GenericProfiler.cpp
-    tools/GenericProfiler.h
 )
 
 set(META_SOURCES

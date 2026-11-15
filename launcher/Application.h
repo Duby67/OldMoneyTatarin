@@ -67,7 +67,6 @@ class IconList;
 class QNetworkAccessManager;
 class JavaInstallList;
 class ExternalUpdater;
-class BaseProfilerFactory;
 class BaseDetachedToolFactory;
 class TranslationsModel;
 class ITheme;
@@ -143,7 +142,6 @@ class Application : public QApplication {
 
     Status status() const { return m_status; }
 
-    const QMap<QString, std::shared_ptr<BaseProfilerFactory>>& profilers() const { return m_profilers; }
 
     void updateProxySettings(QString proxyTypeStr, QString addr, int port, QString user, QString password);
 
@@ -268,7 +266,6 @@ class Application : public QApplication {
     QSet<QString> m_features;
     std::unique_ptr<ThemeManager> m_themeManager;
 
-    QMap<QString, std::shared_ptr<BaseProfilerFactory>> m_profilers;
 
     QString m_rootPath;
     QString m_dataPath;

@@ -55,7 +55,6 @@ class InstanceProxyModel;
 class LabeledToolButton;
 class QLabel;
 class MinecraftLauncher;
-class BaseProfilerFactory;
 class InstanceView;
 class KonamiCode;
 class InstanceTask;

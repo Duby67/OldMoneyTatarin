@@ -442,45 +442,9 @@ void LaunchController::launchInstance()
 
 void LaunchController::readyForLaunch()
 {
-    if (!m_profiler) {
-        m_launcher->proceed();
-        return;
-    }
-
-    QString error;
-    if (!m_profiler->check(&error)) {
-        m_launcher->abort();
-        emitFailed("Profiler startup failed!");
-        QMessageBox::critical(m_parentWidget, tr("Error!"), tr("Profiler check for %1 failed: %2").arg(m_profiler->name(), error));
-        return;
-    }
-    BaseProfiler* profilerInstance = m_profiler->createProfiler(m_launcher->instance(), this);
-
-    connect(profilerInstance, &BaseProfiler::readyToLaunch, [this](const QString& message) {
-        QMessageBox msg(m_parentWidget);
-        msg.setText(tr("The game launch is delayed until you press the "
-                       "button. This is the right time to setup the profiler, as the "
-                       "profiler server is running now.\n\n%1")
-                        .arg(message));
-        msg.setWindowTitle(tr("Waiting."));
-        msg.setIcon(QMessageBox::Information);
-        msg.addButton(tr("&Launch"), QMessageBox::AcceptRole);
-        msg.exec();
-        m_launcher->proceed();
-    });
-    connect(profilerInstance, &BaseProfiler::abortLaunch, [this](const QString& message) {
-        QMessageBox msg;
-        msg.setText(tr("Couldn't start the profiler: %1").arg(message));
-        msg.setWindowTitle(tr("Error"));
-        msg.setIcon(QMessageBox::Critical);
-        msg.addButton(QMessageBox::Ok);
-        msg.setModal(true);
-        msg.exec();
-        m_launcher->abort();
-        emitFailed("Profiler startup failed!");
-    });
-    profilerInstance->beginProfiling(m_launcher);
+    m_launcher->proceed();
 }
+
 
 void LaunchController::onSucceeded()
 {

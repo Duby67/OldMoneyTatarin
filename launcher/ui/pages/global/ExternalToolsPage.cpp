@@ -45,7 +45,6 @@
 #include <tools/MCEditTool.h>
 #include "Application.h"
 #include "settings/SettingsObject.h"
-#include "tools/BaseProfiler.h"
 
 ExternalToolsPage::ExternalToolsPage(QWidget* parent) : QWidget(parent), ui(new Ui::ExternalToolsPage)
 {
@@ -54,8 +53,6 @@ ExternalToolsPage::ExternalToolsPage(QWidget* parent) : QWidget(parent), ui(new 
     ui->jsonEditorTextBox->setClearButtonEnabled(true);
 
     ui->mceditLink->setOpenExternalLinks(true);
-    ui->jvisualvmLink->setOpenExternalLinks(true);
-    ui->jprofilerLink->setOpenExternalLinks(true);
     loadSettings();
 }
 
@@ -67,8 +64,6 @@ ExternalToolsPage::~ExternalToolsPage()
 void ExternalToolsPage::loadSettings()
 {
     auto s = APPLICATION->settings();
-    ui->jprofilerPathEdit->setText(s->get("JProfilerPath").toString());
-    ui->jvisualvmPathEdit->setText(s->get("JVisualVMPath").toString());
     ui->mceditPathEdit->setText(s->get("MCEditPath").toString());
 
     // Editors
@@ -78,8 +73,6 @@ void ExternalToolsPage::applySettings()
 {
     auto s = APPLICATION->settings();
 
-    s->set("JProfilerPath", ui->jprofilerPathEdit->text());
-    s->set("JVisualVMPath", ui->jvisualvmPathEdit->text());
     s->set("MCEditPath", ui->mceditPathEdit->text());
 
     // Editors
@@ -93,63 +86,11 @@ void ExternalToolsPage::applySettings()
     s->set("JsonEditor", jsonEditor);
 }
 
-void ExternalToolsPage::on_jprofilerPathBtn_clicked()
-{
-    QString raw_dir = ui->jprofilerPathEdit->text();
-    QString error;
-    do {
-        raw_dir = QFileDialog::getExistingDirectory(this, tr("JProfiler Folder"), raw_dir);
-        if (raw_dir.isEmpty()) {
-            break;
-        }
-        QString cooked_dir = FS::NormalizePath(raw_dir);
-        if (!APPLICATION->profilers()["jprofiler"]->check(cooked_dir, &error)) {
-            QMessageBox::critical(this, tr("Error"), tr("Error while checking JProfiler install:\n%1").arg(error));
-            continue;
-        } else {
-            ui->jprofilerPathEdit->setText(cooked_dir);
-            break;
-        }
-    } while (1);
-}
-void ExternalToolsPage::on_jprofilerCheckBtn_clicked()
-{
-    QString error;
-    if (!APPLICATION->profilers()["jprofiler"]->check(ui->jprofilerPathEdit->text(), &error)) {
-        QMessageBox::critical(this, tr("Error"), tr("Error while checking JProfiler install:\n%1").arg(error));
-    } else {
-        QMessageBox::information(this, tr("OK"), tr("JProfiler setup seems to be OK"));
-    }
-}
 
-void ExternalToolsPage::on_jvisualvmPathBtn_clicked()
-{
-    QString raw_dir = ui->jvisualvmPathEdit->text();
-    QString error;
-    do {
-        raw_dir = QFileDialog::getOpenFileName(this, tr("VisualVM Executable"), raw_dir);
-        if (raw_dir.isEmpty()) {
-            break;
-        }
-        QString cooked_dir = FS::NormalizePath(raw_dir);
-        if (!APPLICATION->profilers()["jvisualvm"]->check(cooked_dir, &error)) {
-            QMessageBox::critical(this, tr("Error"), tr("Error while checking VisualVM install:\n%1").arg(error));
-            continue;
-        } else {
-            ui->jvisualvmPathEdit->setText(cooked_dir);
-            break;
-        }
-    } while (1);
-}
-void ExternalToolsPage::on_jvisualvmCheckBtn_clicked()
-{
-    QString error;
-    if (!APPLICATION->profilers()["jvisualvm"]->check(ui->jvisualvmPathEdit->text(), &error)) {
-        QMessageBox::critical(this, tr("Error"), tr("Error while checking VisualVM install:\n%1").arg(error));
-    } else {
-        QMessageBox::information(this, tr("OK"), tr("VisualVM setup seems to be OK"));
-    }
-}
+
+
+
+
 
 void ExternalToolsPage::on_mceditPathBtn_clicked()
 {

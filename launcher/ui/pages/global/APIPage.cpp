@@ -51,7 +51,6 @@
 #include "BuildConfig.h"
 #include "net/flame/FetchFlameAPIKey.h"
 #include "settings/SettingsObject.h"
-#include "tools/BaseProfiler.h"
 #include "ui/dialogs/ProgressDialog.h"
 
 APIPage::APIPage(QWidget* parent) : QWidget(parent), ui(new Ui::APIPage)

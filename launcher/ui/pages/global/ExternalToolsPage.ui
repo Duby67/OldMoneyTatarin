@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <ui version="4.0">
  <class>ExternalToolsPage</class>
  <widget class="QWidget" name="ExternalToolsPage">
@@ -57,7 +57,7 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
-             <widget class="QLineEdit" name="jsonEditorTextBox"/>
+             <widget class="QLineEdit" name="jsonEditorTextBox" />
             </item>
             <item>
              <widget class="QPushButton" name="jsonEditorBrowseBtn">
@@ -104,7 +104,7 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_6">
             <item>
-             <widget class="QLineEdit" name="mceditPathEdit"/>
+             <widget class="QLineEdit" name="mceditPathEdit" />
             </item>
             <item>
              <widget class="QPushButton" name="mceditPathBtn">
@@ -131,7 +131,7 @@
           <item>
            <widget class="QLabel" name="mceditLink">
             <property name="text">
-             <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://www.mcedit.net/&quot;&gt;MCEdit Website&lt;/a&gt; - Used as world editor in the instance Worlds menu.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href="https://www.mcedit.net/"&gt;MCEdit Website&lt;/a&gt; - Used as world editor in the instance Worlds menu.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
            </widget>
           </item>
@@ -139,144 +139,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="profilersBox">
-         <property name="title">
-          <string>&amp;Profilers</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_4">
-          <item>
-           <widget class="QLabel" name="labelJsonEditor">
-            <property name="text">
-             <string>Profilers are accessible through the Launch dropdown menu.</string>
-            </property>
-            <property name="buddy">
-             <cstring>jsonEditorTextBox</cstring>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="verticalSpacer_9">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>0</width>
-              <height>6</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>J&amp;Profiler</string>
-            </property>
-            <property name="buddy">
-             <cstring>jprofilerPathEdit</cstring>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_4">
-            <item>
-             <widget class="QLineEdit" name="jprofilerPathEdit"/>
-            </item>
-            <item>
-             <widget class="QPushButton" name="jprofilerPathBtn">
-              <property name="text">
-               <string>Browse</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QPushButton" name="jprofilerCheckBtn">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Check</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="jprofilerLink">
-            <property name="text">
-             <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://www.ej-technologies.com/products/jprofiler/overview.html&quot;&gt;JProfiler Website&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="verticalSpacer_8">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>0</width>
-              <height>6</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>&amp;VisualVM</string>
-            </property>
-            <property name="buddy">
-             <cstring>jvisualvmPathEdit</cstring>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_5">
-            <item>
-             <widget class="QLineEdit" name="jvisualvmPathEdit"/>
-            </item>
-            <item>
-             <widget class="QPushButton" name="jvisualvmPathBtn">
-              <property name="text">
-               <string>Browse</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QPushButton" name="jvisualvmCheckBtn">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Check</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="jvisualvmLink">
-            <property name="text">
-             <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://visualvm.github.io/&quot;&gt;VisualVM Website&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
+        </item>
        <item>
         <spacer name="verticalSpacer">
          <property name="orientation">
@@ -296,6 +159,6 @@
    </item>
   </layout>
  </widget>
- <resources/>
- <connections/>
+ <resources />
+ <connections />
 </ui>

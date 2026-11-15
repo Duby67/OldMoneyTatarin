@@ -46,7 +46,6 @@
 #include "DataMigrationTask.h"
 #include "java/JavaInstallList.h"
 #include "tasks/Task.h"
-#include "tools/GenericProfiler.h"
 #include "ui/InstanceWindow.h"
 #include "ui/MainWindow.h"
 #include "ui/ToolTipFilter.h"
@@ -109,8 +108,6 @@
 
 #include "updater/ExternalUpdater.h"
 
-#include "tools/JProfiler.h"
-#include "tools/JVisualVM.h"
 #include "tools/MCEditTool.h"
 
 #include "settings/INISettingsObject.h"
@@ -1007,12 +1004,7 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
 
 
     // FIXME: what to do with these?
-    m_profilers.insert("jprofiler", std::shared_ptr<BaseProfilerFactory>(new JProfilerFactory()));
-    m_profilers.insert("jvisualvm", std::shared_ptr<BaseProfilerFactory>(new JVisualVMFactory()));
-    m_profilers.insert("generic", std::shared_ptr<BaseProfilerFactory>(new GenericProfilerFactory()));
-    for (auto profiler : m_profilers.values()) {
-        profiler->registerSettings(m_settings.get());
-    }
+
 
     // Create the MCEdit thing... why is this here?
     {
@@ -1516,7 +1508,6 @@ bool Application::launch(BaseInstance* instance,
         controller.reset(new LaunchController());
         controller->setInstance(instance);
         controller->setLaunchMode(mode);
-        controller->setProfiler(profilers().value(instance->settings()->get("Profiler").toString(), nullptr).get());
         controller->setTargetToJoin(targetToJoin);
         controller->setAccountToUse(accountToUse);
         controller->setOfflineName(offlineName);

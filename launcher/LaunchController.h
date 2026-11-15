@@ -35,7 +35,6 @@
 
 #pragma once
 #include <BaseInstance.h>
-#include <tools/BaseProfiler.h>
 
 #include "minecraft/auth/MinecraftAccount.h"
 #include "minecraft/launch/MinecraftTarget.h"
@@ -60,7 +59,6 @@ class LaunchController : public Task {
 
     void setOfflineName(const QString& offlineName) { m_offlineName = offlineName; }
 
-    void setProfiler(BaseProfilerFactory* profiler) { m_profiler = profiler; }
 
     void setParentWidget(QWidget* widget) { m_parentWidget = widget; }
 
@@ -91,7 +89,6 @@ class LaunchController : public Task {
    private:
     LaunchMode m_wantedLaunchMode = LaunchMode::Normal;
     LaunchMode m_actualLaunchMode = LaunchMode::Normal;
-    BaseProfilerFactory* m_profiler = nullptr;
     QString m_offlineName;
     BaseInstance* m_instance = nullptr;
     QWidget* m_parentWidget = nullptr;

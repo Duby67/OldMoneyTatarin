@@ -300,7 +300,6 @@ class BaseInstance : public QObject {
 
     void runningStatusChanged(bool running);
 
-    void profilerChanged();
 
     void statusChanged(Status from, Status to);
 

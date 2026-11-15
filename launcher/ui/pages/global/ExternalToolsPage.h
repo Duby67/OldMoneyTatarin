@@ -72,10 +72,6 @@ class ExternalToolsPage : public QWidget, public BasePage {
     Ui::ExternalToolsPage* ui;
 
    private slots:
-    void on_jprofilerPathBtn_clicked();
-    void on_jprofilerCheckBtn_clicked();
-    void on_jvisualvmPathBtn_clicked();
-    void on_jvisualvmCheckBtn_clicked();
     void on_mceditPathBtn_clicked();
     void on_mceditCheckBtn_clicked();
     void on_jsonEditorBrowseBtn_clicked();
