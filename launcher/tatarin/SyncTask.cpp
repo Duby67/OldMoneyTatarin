@@ -1,5 +1,6 @@
 #include "SyncTask.h"
 #include "Repository.h"
+#include "MemoryPolicy.h"
 #include "Application.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
@@ -47,6 +48,7 @@ void SyncTask::executeTask()
             }
         }
         setAbortable(false);
+        applyMemorySettings(m_instance, value);
         const auto extras = additionalMods(m_instance->gameRoot(), value);
         if (!extras.isEmpty())
             logWarning(QStringLiteral("TATARIN: сохранено дополнительных модов: %1. Они могут влиять на совместимость; список доступен на странице TATARIN экземпляра.")

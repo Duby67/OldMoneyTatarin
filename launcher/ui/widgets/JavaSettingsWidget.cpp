@@ -161,6 +161,9 @@ void JavaSettingsWidget::loadSettings()
     }
     m_ui->permGenSpinBox->setValue(settings->get("PermGen").toInt());
     m_ui->lowMemWarningCheckBox->setChecked(settings->get("LowMemWarning").toBool());
+    const bool managedMemory = m_instance && settings->get("TatarinMemoryManaged").toBool();
+    m_ui->memoryGroupBox->setEnabled(!managedMemory);
+    m_ui->memoryGroupBox->setToolTip(managedMemory ? QStringLiteral("Параметры памяти заданы манифестом сборки TATARIN.") : QString());
 
     // Java arguments
     m_ui->javaArgumentsGroupBox->setChecked(m_instance == nullptr || settings->get("OverrideJavaArgs").toBool());
@@ -213,14 +216,15 @@ void JavaSettingsWidget::saveSettings()
     }
 
     // Memory
-    bool memory = m_instance == nullptr || m_ui->memoryGroupBox->isChecked();
+    const bool managedMemory = m_instance && settings->get("TatarinMemoryManaged").toBool();
+    bool memory = managedMemory || m_instance == nullptr || m_ui->memoryGroupBox->isChecked();
 
     if (m_instance != nullptr)
         settings->set("OverrideMemory", memory);
 
     if (memory) {
-        int min = m_ui->minMemSpinBox->value();
-        int max = m_ui->maxMemSpinBox->value();
+        int min = managedMemory ? settings->get("TatarinMinMemory").toInt() : m_ui->minMemSpinBox->value();
+        int max = managedMemory ? settings->get("TatarinMaxMemory").toInt() : m_ui->maxMemSpinBox->value();
         if (min < max) {
             settings->set("MinMemAlloc", min);
             settings->set("MaxMemAlloc", max);
@@ -229,7 +233,7 @@ void JavaSettingsWidget::saveSettings()
             settings->set("MaxMemAlloc", min);
         }
         settings->set("PermGen", m_ui->permGenSpinBox->value());
-        settings->set("LowMemWarning", m_ui->lowMemWarningCheckBox->isChecked());
+        settings->set("LowMemWarning", managedMemory || m_ui->lowMemWarningCheckBox->isChecked());
     } else {
         settings->reset("MinMemAlloc");
         settings->reset("MaxMemAlloc");

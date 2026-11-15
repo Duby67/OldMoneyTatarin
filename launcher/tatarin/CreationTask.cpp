@@ -1,5 +1,6 @@
 #include "CreationTask.h"
 #include "Repository.h"
+#include "MemoryPolicy.h"
 #include "Application.h"
 #include "minecraft/PackProfile.h"
 #include "settings/INISettingsObject.h"
@@ -24,6 +25,7 @@ std::unique_ptr<MinecraftInstance> CreationTask::createInstance()
         auto settings = std::make_unique<INISettingsObject>(m_stagingPath + "/instance.cfg");
         auto instance = std::make_unique<MinecraftInstance>(m_globalSettings, std::move(settings), m_stagingPath);
         auto* profile = instance->getPackProfile();
+        applyMemorySettings(instance.get(), value);
         profile->buildingFromScratch();
         profile->setComponentVersion("net.minecraft", value["minecraft"].toString(), true);
         profile->setComponentVersion("net.neoforged", value["neoforge"].toString());

@@ -1,4 +1,5 @@
 #include "Repository.h"
+#include "ClientData.h"
 
 #include <QCoreApplication>
 #include <QDir>
@@ -117,6 +118,7 @@ std::unique_ptr<QLockFile> lock(const QString& instanceRoot)
 QJsonObject verifiedInstalled(const QString& instanceRoot, const QString& gameRoot, const QString& packId)
 {
     const auto guard = lock(instanceRoot);
+    recoverClientData(instanceRoot, gameRoot, true);
     recover(instanceRoot, gameRoot, packId);
     const auto value = installed(instanceRoot, packId);
     for (const auto& item : value["files"].toArray()) {
@@ -135,6 +137,7 @@ QJsonObject synchronize(QNetworkAccessManager* network, const QUrl& source, cons
                         std::function<void(bool)> applying)
 {
     const auto guard = lock(instanceRoot);
+    recoverClientData(instanceRoot, gameRoot, true);
     if (applying)
         applying(true);
     recover(instanceRoot, gameRoot, packId);

@@ -164,6 +164,20 @@ def main(executable):
             assert (game / "mods/user.jar").read_text() == "user-mod"
             extras = subprocess.run([executable, url, str(instance), "extras"], capture_output=True, text=True, encoding="utf-8", check=True)
             assert "mods/user.jar" in extras.stdout and "mods/a.jar" not in extras.stdout
+            legacy = root / "legacy"
+            (legacy / "config").mkdir(parents=True)
+            (legacy / "config/client.toml").write_text("imported-client-settings")
+            (legacy / "config/main.toml").write_text("do-not-overwrite-mandatory-config")
+            run("import=" + str(legacy))
+            assert (game / "config/client.toml").read_text() == "imported-client-settings"
+            assert (game / "config/main.toml").read_text() == "mandatory-update"
+            value = release("seed-5", {"mods/a.jar": "new-a", "config/main.toml": "mandatory-update",
+                                      "config/client.toml": "new-author-default"}, seeded)
+            value["memory"] = {"minMiB": 8192, "maxMiB": 8192, "systemReserveMiB": 2048}
+            publish(value)
+            run("sync")
+            assert (game / "config/client.toml").read_text() == "imported-client-settings"
+            assert json.loads((instance / "tatarin/installed.json").read_text())["memory"]["minMiB"] == 8192
             # Windows junction не должен позволять изменение файлов вне экземпляра.
             if sys.platform == "win32":
                 outside = root / "outside"
@@ -178,7 +192,7 @@ def main(executable):
                 finally:
                     junction.rmdir()
             print("PASS: HTTP install/update/repair, no redundant downloads, cancel, corrupt object, recovery, unsafe paths, offline integrity")
-            print("PASS: seed edits/deletions/reintroduction, mandatory config backup, additional mods, junction containment")
+            print("PASS: seed edits/deletions/reintroduction, imported preferences survive sync, memory metadata, config backup, additional mods, junction containment")
         finally:
             server.shutdown()
             server.server_close()

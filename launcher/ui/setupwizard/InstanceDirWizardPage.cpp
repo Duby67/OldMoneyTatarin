@@ -16,10 +16,7 @@
 InstanceDirWizardPage::InstanceDirWizardPage(QWidget* parent) : BaseWizardPage(parent)
 {
     auto* layout = new QVBoxLayout(this);
-    auto* explanation = new QLabel(QStringLiteral("Выберите общий каталог сборок, например D:\\TATARIN\\Instances. "
-                                                  "Каждая сборка будет установлена в отдельную папку внутри него. "
-                                                  "Каталог сборок можно выбрать независимо от места установки лаунчера. "
-                                                  "Смена каталога не переносит уже установленные сборки."), this);
+    auto* explanation = new QLabel(QStringLiteral("Выберите общий каталог сборок:"), this);
     explanation->setWordWrap(true);
     layout->addWidget(explanation);
     m_directory = new QLineEdit(QDir::toNativeSeparators(QDir(APPLICATION->settings()->get("InstanceDir").toString()).absolutePath()), this);
@@ -38,7 +35,7 @@ InstanceDirWizardPage::InstanceDirWizardPage(QWidget* parent) : BaseWizardPage(p
 void InstanceDirWizardPage::retranslate()
 {
     setTitle(QStringLiteral("Папка сборок"));
-    setSubTitle(QStringLiteral("Сборки могут храниться на другом диске, отдельно от программы."));
+    setSubTitle(QStringLiteral("Сборки могут храниться отдельно от программы"));
 }
 
 bool InstanceDirWizardPage::validatePage()

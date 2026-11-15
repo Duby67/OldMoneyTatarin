@@ -603,7 +603,6 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
         qInfo() << "Version                    :" << BuildConfig.printableVersionString();
         qInfo() << "Platform                   :" << BuildConfig.BUILD_PLATFORM;
         qInfo() << "Git commit                 :" << BuildConfig.GIT_COMMIT;
-        qInfo() << "Git refspec                :" << BuildConfig.GIT_REFSPEC;
         qInfo() << "Compiled for               :" << BuildConfig.systemID();
         qInfo() << "Compiled by                :" << BuildConfig.compilerID();
         qInfo() << "Build Artifact             :" << BuildConfig.BUILD_ARTIFACT;

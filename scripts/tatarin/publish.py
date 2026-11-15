@@ -6,7 +6,7 @@ import re
 import shutil
 from pathlib import Path, PurePosixPath
 
-from snapshot import digest
+from snapshot import digest, file_policy
 
 
 def write_json(path, value):
@@ -16,10 +16,15 @@ def write_json(path, value):
     temporary.replace(path)
 
 
-def publish(snapshot, root, release, notes):
+def publish(snapshot, root, release, notes, memory=None, client_presets=False):
     if not re.fullmatch(r"[a-zA-Z0-9._-]+", release) or release in {".", ".."}:
         raise ValueError("Недопустимый ID выпуска")
     manifest = json.loads((snapshot / "snapshot.json").read_text(encoding="utf-8"))
+    if memory is not None:
+        minimum, maximum = memory
+        if not 256 <= minimum <= maximum <= 262144:
+            raise ValueError("Некорректный диапазон памяти Java")
+        manifest["memory"] = {"minMiB": minimum, "maxMiB": maximum, "systemReserveMiB": 2048}
     pack_id = manifest["id"]
     if not re.fullmatch(r"[a-z0-9-]+", pack_id):
         raise ValueError("Недопустимый ID сборки")
@@ -30,6 +35,8 @@ def publish(snapshot, root, release, notes):
         if not re.fullmatch(r"[0-9a-f]{64}", entry["sha256"]):
             raise ValueError("Недопустимый SHA-256 в снимке")
         path = PurePosixPath(entry["path"])
+        if client_presets:
+            entry["policy"] = file_policy(path, entry["policy"])
         if path.is_absolute() or ".." in path.parts or "\\" in entry["path"] or ":" in entry["path"]:
             raise ValueError("Недопустимый путь в снимке")
         source = snapshot / "minecraft" / path
@@ -59,5 +66,11 @@ if __name__ == "__main__":
     parser.add_argument("root", type=Path)
     parser.add_argument("--release", required=True)
     parser.add_argument("--notes", default="Первый локальный выпуск")
+    parser.add_argument("--min-memory-mib", type=int)
+    parser.add_argument("--max-memory-mib", type=int)
+    parser.add_argument("--client-presets", action="store_true", help="Пометить известные клиентские конфиги как seed")
     args = parser.parse_args()
-    publish(args.snapshot, args.root, args.release, args.notes)
+    if (args.min_memory_mib is None) != (args.max_memory_mib is None):
+        parser.error("Задайте обе границы памяти")
+    memory = (args.min_memory_mib, args.max_memory_mib) if args.min_memory_mib is not None else None
+    publish(args.snapshot, args.root, args.release, args.notes, memory, args.client_presets)

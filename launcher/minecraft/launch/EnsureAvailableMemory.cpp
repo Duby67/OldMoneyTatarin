@@ -19,12 +19,32 @@
 #include "EnsureAvailableMemory.h"
 
 #include "HardwareInfo.h"
+#include "tatarin/MemoryPolicy.h"
 #include "ui/dialogs/CustomMessageBox.h"
 
 EnsureAvailableMemory::EnsureAvailableMemory(LaunchTask* parent, MinecraftInstance* instance) : LaunchStep(parent), m_instance(instance) {}
 
 void EnsureAvailableMemory::executeTask()
 {
+    if (m_instance->settings()->get("TatarinMemoryManaged").toBool()) {
+        Tatarin::MemoryRequirements memory{m_instance->settings()->get("TatarinMinMemory").toInt(),
+                                          m_instance->settings()->get("TatarinMaxMemory").toInt(),
+                                          m_instance->settings()->get("TatarinSystemReserve").toInt()};
+        const auto warning = Tatarin::memoryWarning(memory, HardwareInfo::totalRamMiB(), HardwareInfo::availableRamMiB());
+        if (!warning.isEmpty()) {
+            auto* dialog = CustomMessageBox::selectable(nullptr, QStringLiteral("Недостаточно памяти для сборки"), warning,
+                QMessageBox::Warning, QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+            const auto choice = dialog->exec();
+            dialog->deleteLater();
+            if (choice != QMessageBox::Yes) {
+                emitFailed(QStringLiteral("Запуск отменён: требования сборки к памяти не выполнены."));
+                return;
+            }
+            emit logLine(QStringLiteral("Запуск с недостаточным запасом RAM подтверждён пользователем."), MessageLevel::Warning);
+        }
+        emitSucceeded();
+        return;
+    }
 #ifdef Q_OS_MACOS
     QString text;
     switch (MacOSHardwareInfo::memoryPressureLevel()) {
