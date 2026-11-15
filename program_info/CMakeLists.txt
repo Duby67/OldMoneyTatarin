@@ -11,7 +11,8 @@ set(Launcher_ENVName "PINECONEMC" PARENT_SCOPE)
 set(Launcher_Domain "${Launcher_Domain}" PARENT_SCOPE)
 set(Launcher_Git "${Launcher_Git}" PARENT_SCOPE)
 
-set(Launcher_SVGFileName "${Launcher_AppID}.svg")
+# The upstream variable name is kept for API compatibility; Qt supports PNG icons.
+set(Launcher_SVGFileName "oldmoneytatarin.png")
 set(Launcher_Copyright "© 2022-2026 PineconeMC Contributors\\n© 2022-2026 Prism Launcher Contributors\\n© 2021-2022 PolyMC Contributors\\n© 2012-2021 MultiMC Contributors")
 set(Launcher_Copyright "${Launcher_Copyright}" PARENT_SCOPE)
 set(Launcher_UserAgent "PrismLauncher/${Launcher_VERSION_NAME}" PARENT_SCOPE)
