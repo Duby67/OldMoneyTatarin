@@ -22,13 +22,11 @@ LanguageWizardPage::~LanguageWizardPage() {}
 
 bool LanguageWizardPage::wantsRefreshButton()
 {
-    return true;
+    return false;
 }
 
 void LanguageWizardPage::refresh()
 {
-    auto translations = APPLICATION->translations();
-
 }
 
 bool LanguageWizardPage::validatePage()
