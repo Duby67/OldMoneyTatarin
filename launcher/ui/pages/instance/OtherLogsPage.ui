@@ -173,8 +173,6 @@
         </widget>
        </item>
        <item>
-        </item>
-       <item>
         <widget class="QPushButton" name="btnReload">
          <property name="toolTip">
           <string>Reload the contents of the log from the disk</string>

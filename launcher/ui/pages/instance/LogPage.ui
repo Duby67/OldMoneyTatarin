@@ -95,8 +95,6 @@
       </widget>
      </item>
      <item>
-      </item>
-     <item>
       <widget class="QPushButton" name="btnClear">
        <property name="toolTip">
         <string>Clear the log</string>

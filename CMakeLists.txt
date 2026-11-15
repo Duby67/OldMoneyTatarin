@@ -122,7 +122,6 @@ if (DEBUG_ADDRESS_SANITIZER)
     endif()
 endif()
 
-
 option(ENABLE_LTO "Enable Link Time Optimization" off)
 
 if(ENABLE_LTO)
@@ -171,7 +170,7 @@ set(Launcher_VERSION_NAME4 "${Launcher_VERSION_MAJOR}.${Launcher_VERSION_MINOR}.
 set(Launcher_VERSION_NAME4_COMMA "${Launcher_VERSION_MAJOR},${Launcher_VERSION_MINOR},${Launcher_VERSION_PATCH},0")
 
 # Build platform.
-set(Launcher_BUILD_PLATFORM "unknown" CACHE STRING "A short string identifying the platform that this build was built for. Only used to display in the about dialog.")
+set(Launcher_BUILD_PLATFORM "unknown" CACHE STRING "A short string identifying the platform that this build was built for. Used in launcher diagnostics.")
 
 # Github repo URL with releases for updater
 set(Launcher_UPDATER_GITHUB_REPO "https://github.com/Duby67/OldMoneyTatarin" CACHE STRING "Base github URL for the updater.")
@@ -182,18 +181,6 @@ set(Launcher_BUILD_ARTIFACT "" CACHE STRING "Artifact name to help the updater i
 # The metadata server
 set(Launcher_META_URL "https://meta.pineconemc.ru/v1/" CACHE STRING "URL to fetch Launcher's meta files from.")
 
-# Imgur API Client ID
-
-# Bug tracker URL
-
-# Translations Platform URL
-
-# Matrix Space
-
-# Discord URL
-
-# Subreddit URL
-
 # Builds
 set(Launcher_QT_VERSION_MAJOR "6" CACHE STRING "Major Qt version to build against")
 
@@ -201,7 +188,6 @@ option(Launcher_USE_PCH "Use precompiled headers where possible" ON)
 
 # Java downloader
 set(Launcher_ENABLE_JAVA_DOWNLOADER_DEFAULT ON)
-
 
 # Java downloader
 option(Launcher_ENABLE_JAVA_DOWNLOADER "Build the java downloader feature" ${Launcher_ENABLE_JAVA_DOWNLOADER_DEFAULT})
@@ -267,7 +253,6 @@ endif()
 
 find_package(cmark REQUIRED)
 
-
 # Find libqrencode
 ## NOTE(@getchoo): Never use pkg-config with MSVC since the vcpkg port makes our install bundle fail to find the dll
 if(MSVC)
@@ -297,7 +282,6 @@ endif()
 
 find_package(ZLIB REQUIRED)
 
-
 include(ECMQtDeclareLoggingCategory)
 
 ####################################### Program Info #######################################
@@ -325,8 +309,6 @@ if(WIN32)
 else()
     message(FATAL_ERROR "Platform not supported")
 endif()
-
-
 
 ################################ Included Libs ################################
 
