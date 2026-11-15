@@ -50,7 +50,6 @@
 #include "minecraft/auth/MinecraftAccount.h"
 
 class LaunchController;
-class NewsChecker;
 class QToolButton;
 class InstanceProxyModel;
 class LabeledToolButton;
@@ -141,9 +140,7 @@ class MainWindow : public QMainWindow {
 
     void on_actionOpenWiki_triggered();
 
-    void on_actionMoreNews_triggered();
 
-    void newsButtonClicked();
 
     void on_actionLaunchInstance_triggered();
 
@@ -199,7 +196,6 @@ class MainWindow : public QMainWindow {
 
     void repopulateAccountsMenu();
 
-    void updateNewsLabel();
 
     void konamiTriggered();
 
@@ -234,7 +230,6 @@ class MainWindow : public QMainWindow {
     // these are managed by Qt's memory management model!
     InstanceView* view = nullptr;
     InstanceProxyModel* proxymodel = nullptr;
-    QToolButton* newsLabel = nullptr;
     QLabel* m_statusLeft = nullptr;
     QLabel* m_statusCenter = nullptr;
     LabeledToolButton* changeIconButton = nullptr;
@@ -244,7 +239,6 @@ class MainWindow : public QMainWindow {
 
     std::shared_ptr<Setting> instanceToolbarSetting = nullptr;
 
-    unique_qobject_ptr<NewsChecker> m_newsChecker;
 
     BaseInstance* m_selectedInstance = nullptr;
     QString m_currentInstIcon;

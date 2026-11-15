@@ -95,7 +95,6 @@ APIPage::APIPage(QWidget* parent) : QWidget(parent), ui(new Ui::APIPage)
     connect(ui->baseURLEntry, &QLineEdit::textEdited, this, &APIPage::resetBaseURLNote);
 
     onAutoServersChanged();
-    connect(ui->autoServersCheckBox, &QCheckBox::checkStateChanged, this, &APIPage::onAutoServersChanged);
     connect(ui->setHostedServers, &QPushButton::clicked, this, [this] {
         constexpr auto key = PineconeNetworkCheck::Result::UsePrimary;
         ui->metaURL->setText(PineconeNetworkCheck::metaUrls().value(key));
@@ -157,7 +156,6 @@ void APIPage::updateBaseURLPlaceholder(int index)
 
 void APIPage::onAutoServersChanged() const
 {
-    const bool autoServers = ui->autoServersCheckBox->isChecked();
     ui->setHostedServers->setEnabled(!autoServers);
     ui->setGitHubNew->setEnabled(!autoServers);
     ui->setGitHubOld->setEnabled(!autoServers);
@@ -208,7 +206,6 @@ void APIPage::loadSettings()
     ui->userAgentLineEdit->setText(customUserAgent);
     ui->technicClientID->setText(s->get("TechnicClientID").toString());
 
-    ui->autoServersCheckBox->setChecked(s->get("PineconeAutoServers").toBool());
 }
 
 void APIPage::applySettings()
@@ -260,7 +257,6 @@ void APIPage::applySettings()
     s->set("UserAgentOverride", ui->userAgentLineEdit->text());
     s->set("TechnicClientID", ui->technicClientID->text());
 
-    s->set("PineconeAutoServers", ui->autoServersCheckBox->isChecked());
 }
 
 bool APIPage::apply()

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <ui version="4.0">
  <class>APIPage</class>
  <widget class="QWidget" name="APIPage">
@@ -45,12 +45,7 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_9">
           <item>
-           <widget class="QCheckBox" name="autoServersCheckBox">
-            <property name="text">
-             <string>Choose servers automatically</string>
-            </property>
-           </widget>
-          </item>
+           </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
@@ -285,7 +280,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="legacyFMLLibsURL"/>
+           <widget class="QLineEdit" name="legacyFMLLibsURL" />
           </item>
          </layout>
         </widget>
@@ -470,7 +465,7 @@
           <item>
            <widget class="QLabel" name="label_8">
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Note: you only need to set this to access private data. Read the &lt;a href=&quot;https://docs.modrinth.com/api/#authentication&quot;&gt;documentation&lt;/a&gt; for more information.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Note: you only need to set this to access private data. Read the &lt;a href="https://docs.modrinth.com/api/#authentication"&gt;documentation&lt;/a&gt; for more information.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="wordWrap">
              <bool>true</bool>
@@ -607,6 +602,6 @@
    </item>
   </layout>
  </widget>
- <resources/>
- <connections/>
+ <resources />
+ <connections />
 </ui>

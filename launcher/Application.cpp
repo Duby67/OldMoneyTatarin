@@ -124,7 +124,6 @@
 #include <DesktopServices.h>
 #include <FileSystem.h>
 #include <LocalPeer.h>
-#include <PineconeNetworkCheck.h>
 
 #include <stdlib.h>
 #include "SysInfo.h"
@@ -832,7 +831,6 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
 
         m_settings->registerSetting("UpdateDialogGeometry", "");
 
-        m_settings->registerSetting("NewsGeometry", "");
 
         m_settings->registerSetting("ModDownloadGeometry", "");
         m_settings->registerSetting("RPDownloadGeometry", "");
@@ -886,7 +884,6 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
             resetIfInvalid(m_settings->registerSetting("LegacyFMLLibsURLOverride", "").get());
         }
 
-        m_settings->registerSetting("PineconeAutoServers", true);
 
         m_settings->registerSetting("CloseAfterLaunch", false);
         m_settings->registerSetting("QuitAfterGameStop", false);
@@ -1032,8 +1029,6 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
         qInfo() << "<> Translations loaded.";
     }
 
-    m_pineconeNetworkCheck = std::make_unique<PineconeNetworkCheck>(m_network.get());
-    connect(m_pineconeNetworkCheck.get(), &PineconeNetworkCheck::shouldReloadNews, this, &Application::shouldReloadNews);
 
     // FIXME: what to do with these?
     m_profilers.insert("jprofiler", std::shared_ptr<BaseProfilerFactory>(new JProfilerFactory()));
