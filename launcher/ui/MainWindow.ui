@@ -224,7 +224,7 @@
     <addaction name="actionMoreNews"/>
     <addaction name="actionCheckUpdate"/>
     <addaction name="actionOpenWiki"/>
-    <addaction name="actionAbout"/>
+
    </widget>
    <addaction name="fileMenu"/>
    <addaction name="editMenu"/>
@@ -635,20 +635,6 @@
    </property>
    <property name="toolTip">
     <string>Open %1 subreddit.</string>
-   </property>
-  </action>
-  <action name="actionAbout">
-   <property name="icon">
-    <iconset theme="about"/>
-   </property>
-   <property name="text">
-    <string>&amp;About %1</string>
-   </property>
-   <property name="toolTip">
-    <string>View information about %1.</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::AboutRole</enum>
    </property>
   </action>
   <action name="actionClearMetadata">

@@ -92,7 +92,6 @@ class MainWindow : public QMainWindow {
 
     void onCatChanged(int);
 
-    void on_actionAbout_triggered();
 
     void on_actionAddInstance_triggered();
 

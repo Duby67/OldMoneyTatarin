@@ -94,7 +94,6 @@
 
 #include "ui/GuiUtil.h"
 #include "ui/ViewLogWindow.h"
-#include "ui/dialogs/AboutDialog.h"
 #include "ui/dialogs/CopyInstanceDialog.h"
 #include "ui/dialogs/CreateShortcutDialog.h"
 #include "ui/dialogs/CustomMessageBox.h"
@@ -1478,11 +1477,7 @@ void MainWindow::onCatChanged(int)
     setCatBackground(APPLICATION->settings()->get("TheCat").toBool());
 }
 
-void MainWindow::on_actionAbout_triggered()
-{
-    AboutDialog dialog(this);
-    dialog.exec();
-}
+
 
 void MainWindow::on_actionDeleteInstance_triggered()
 {

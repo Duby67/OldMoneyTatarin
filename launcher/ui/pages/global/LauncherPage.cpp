@@ -55,6 +55,10 @@
 #include "updater/ExternalUpdater.h"
 
 #include <QApplication>
+#include <QTextBrowser>
+#include <QGroupBox>
+#include <QVBoxLayout>
+#include <QFile>
 #include <QProcess>
 
 // FIXME: possibly move elsewhere
@@ -68,6 +72,27 @@ enum InstSortMode {
 LauncherPage::LauncherPage(QWidget* parent) : QWidget(parent), ui(new Ui::LauncherPage)
 {
     ui->setupUi(this);
+
+    auto* legalGroup = new QGroupBox(QStringLiteral("Правовая информация"), this);
+    auto* legalLayout = new QVBoxLayout(legalGroup);
+    auto* legalText = new QTextBrowser(legalGroup);
+    legalText->setOpenExternalLinks(false);
+    legalText->setMaximumHeight(200);
+    QString notices = BuildConfig.LAUNCHER_COPYRIGHT + QStringLiteral("\n\n");
+    for (const auto& path : {QStringLiteral(":/documents/COPYING.md"), QStringLiteral(":/documents/LICENSE")}) {
+        QFile document(path);
+        if (document.open(QIODevice::ReadOnly)) {
+            notices += QString::fromUtf8(document.readAll()) + QStringLiteral("\n\n");
+        } else {
+            qWarning() << "Cannot load legal document" << path;
+        }
+    }
+    legalText->setPlainText(notices);
+    legalLayout->addWidget(legalText);
+    if (auto* contents = qobject_cast<QVBoxLayout*>(ui->scrollAreaWidgetContents->layout())) {
+        contents->addWidget(legalGroup);
+    }
+
 
     ui->sortingModeGroup->setId(ui->sortByNameBtn, Sort_Name);
     ui->sortingModeGroup->setId(ui->sortLastLaunchedBtn, Sort_LastLaunch);
