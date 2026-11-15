@@ -15,7 +15,7 @@ BEGIN
         BEGIN
                 BLOCK "000004b0"
                 BEGIN
-                        VALUE "CompanyName", "@Launcher_Authors@"
+                        VALUE "CompanyName", "TATARIN Co."
                         VALUE "FileDescription", "@Launcher_DisplayName@"
                         VALUE "FileVersion", "@Launcher_VERSION_NAME4@"
                         VALUE "ProductName", "@Launcher_DisplayName@"

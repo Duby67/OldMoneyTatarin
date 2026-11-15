@@ -36,6 +36,13 @@ function(oldmoneytatarin_installer)
         USES_TERMINAL
         COMMENT "Сборка локального установщика OldMoneyTatarin через Inno Setup"
         VERBATIM)
+    if(WIN32 AND OldMoneyTatarin_POWERSHELL_EXECUTABLE)
+        add_custom_target(installer-signed
+            COMMAND "${CMAKE_COMMAND}" -DOMT_SIGN=ON -P "${CMAKE_BINARY_DIR}/installer/$<CONFIG>/package.cmake"
+            DEPENDS ${Launcher_Name} "${Launcher_Name}_filelink" NewLaunch NewLaunchLegacy JavaCheck
+            USES_TERMINAL VERBATIM
+            COMMENT "Сборка и локальная подпись установщика TATARIN")
+    endif()
     message(STATUS "Inno Setup: ${OldMoneyTatarin_ISCC_EXECUTABLE}")
 endfunction()
 

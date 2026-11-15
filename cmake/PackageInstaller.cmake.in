@@ -30,9 +30,30 @@ endforeach()
 if(EXISTS "${resolved_stage}/portable.txt")
     message(FATAL_ERROR "Установщик не должен включать portable.txt")
 endif()
+function(sign_file path)
+    set(timestamp_args)
+    if(NOT "@OldMoneyTatarin_SIGNING_TIMESTAMP_URL@" STREQUAL "")
+        list(APPEND timestamp_args -TimestampUrl "@OldMoneyTatarin_SIGNING_TIMESTAMP_URL@")
+    endif()
+    execute_process(COMMAND "@OldMoneyTatarin_POWERSHELL_EXECUTABLE@" -NoProfile -ExecutionPolicy Bypass
+        -File "@CMAKE_SOURCE_DIR@/scripts/sign-windows.ps1" -File "${path}"
+        -ThumbprintFile "@OldMoneyTatarin_SIGNING_THUMBPRINT_FILE@"
+        ${timestamp_args}
+        RESULT_VARIABLE sign_result)
+    if(NOT sign_result EQUAL 0)
+        message(FATAL_ERROR "Не удалось подписать ${path}")
+    endif()
+endfunction()
+if(OMT_SIGN)
+    sign_file("${resolved_stage}/@Launcher_APP_BINARY_NAME@.exe")
+    sign_file("${resolved_stage}/@Launcher_APP_BINARY_NAME@_filelink.exe")
+endif()
 execute_process(COMMAND "@OldMoneyTatarin_ISCC_EXECUTABLE@" "/Qp"
     "@CMAKE_BINARY_DIR@/installer/$<CONFIG>/windows.iss"
     RESULT_VARIABLE compiler_result)
 if(NOT compiler_result EQUAL 0)
     message(FATAL_ERROR "Ошибка компилятора Inno Setup")
+endif()
+if(OMT_SIGN)
+    sign_file("@INSTALLER_OUTPUT@/OldMoneyTatarin-@OldMoneyTatarin_VERSION@-Setup-x64.exe")
 endif()
