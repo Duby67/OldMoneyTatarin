@@ -7,6 +7,9 @@ project(application)
 set(CORE_SOURCES
     tatarin/Repository.h
     tatarin/Repository.cpp
+    tatarin/Sync.cpp
+    tatarin/SyncTask.h
+    tatarin/SyncTask.cpp
     tatarin/CreationTask.h
     tatarin/CreationTask.cpp
     tatarin/CatalogPage.h

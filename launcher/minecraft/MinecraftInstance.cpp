@@ -70,6 +70,7 @@
 #include "minecraft/launch/VerifyJavaInstall.h"
 
 #include "minecraft/update/AssetUpdateTask.h"
+#include "tatarin/SyncTask.h"
 #include "minecraft/update/ElyPatchTask.h"
 #include "minecraft/update/FoldersTask.h"
 #include "minecraft/update/LegacyFMLLibrariesTask.h"
@@ -1117,6 +1118,11 @@ LaunchTask* MinecraftInstance::createLaunchTask(AuthSessionPtr session, Minecraf
     updateRuntimeContext();
     auto process = LaunchTask::create(this);
     auto pptr = process.get();
+
+    // TATARIN может менять версии Minecraft/NeoForge: синхронизация до metadata и Java.
+    if (isManagedPack() && getManagedPackType() == "tatarin") {
+        process->appendStep(makeShared<TaskStepWrapper>(pptr, makeShared<Tatarin::SyncTask>(this)));
+    }
 
     APPLICATION->icons()->saveIcon(iconKey(), FS::PathCombine(gameRoot(), "icon.png"), "PNG");
 

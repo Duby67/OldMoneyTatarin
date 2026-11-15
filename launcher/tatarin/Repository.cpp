@@ -75,8 +75,10 @@ QByteArray request(QNetworkAccessManager* network, const QUrl& url, qint64 limit
     reply->deleteLater();
     if (cancel && cancel())
         fail(QStringLiteral("Операция отменена"));
+    if (writeError)
+        fail(QStringLiteral("Превышен размер ответа TATARIN или не удалось записать файл"));
     if (!okay)
-        fail(QStringLiteral("Не удалось получить файлы TATARIN: источник недоступен, ответ некорректен или превышен размер"));
+        throw NetworkError("Не удалось получить файлы TATARIN: источник недоступен или ответ некорректен");
     return bytes;
 }
 
@@ -252,5 +254,11 @@ void install(QNetworkAccessManager* network, const QUrl& source, const QJsonObje
             progress(++done, files.size());
     }
     writeJson(checkedPath(instanceRoot, "tatarin/installed.json"), value);
+}
+
+void downloadObject(QNetworkAccessManager* network, const QUrl& source, const QJsonObject& entry,
+                    const QString& destination, Cancel cancel)
+{
+    download(network, source, entry, destination, cancel);
 }
 }  // namespace Tatarin

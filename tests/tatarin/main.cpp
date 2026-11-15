@@ -9,10 +9,28 @@ int main(int argc, char** argv)
     QCoreApplication app(argc, argv);
     try {
         const auto args = app.arguments();
-        if (args.size() != 3)
-            throw std::runtime_error("Usage: tatarin-check source destination");
+        if (args.size() < 3 || args.size() > 4)
+            throw std::runtime_error("Usage: tatarin-check source destination [install|sync|verify|cancel]");
         QNetworkAccessManager network;
         const auto source = Tatarin::sourceUrl(args[1]);
+        const auto mode = args.value(3, "install");
+        if (mode == "sync" || mode == "cancel" || mode == "failapply") {
+            bool cancelled = false;
+            int applyCount = 0;
+            Tatarin::synchronize(&network, source, "regionalworlds", args[2], args[2] + "/minecraft",
+                                 [&] { return cancelled; }, [&](qint64, qint64) { cancelled = mode == "cancel"; },
+                                 [&](bool applying) {
+                                     if (applying && ++applyCount == 2 && mode == "failapply")
+                                         QDir().mkpath(args[2] + "/minecraft/mods/z-block.jar");
+                                 });
+            QTextStream(stdout) << "PASS: synchronized\n";
+            return 0;
+        }
+        if (mode == "verify") {
+            Tatarin::verifiedInstalled(args[2], args[2] + "/minecraft", "regionalworlds");
+            QTextStream(stdout) << "PASS: verified installed release\n";
+            return 0;
+        }
         const auto packs = Tatarin::catalog(&network, source)["packs"].toArray();
         if (packs.isEmpty())
             throw std::runtime_error("Empty catalog");
