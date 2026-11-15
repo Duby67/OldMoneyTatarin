@@ -235,23 +235,7 @@ bool LogPage::shouldDisplay() const
     return true;
 }
 
-void LogPage::on_btnPaste_clicked()
-{
-    if (!m_model)
-        return;
 
-    // FIXME: turn this into a proper task and move the upload logic out of GuiUtil!
-    m_model->append(MessageLevel::Launcher,
-                    QString("Log upload triggered at: %1").arg(QDateTime::currentDateTime().toString(Qt::RFC2822Date)));
-    auto url = GuiUtil::uploadPaste(tr("Minecraft Log"), m_model->toPlainText(), this);
-    if (!url.has_value()) {
-        m_model->append(MessageLevel::Error, QString("Log upload canceled"));
-    } else if (url->isNull()) {
-        m_model->append(MessageLevel::Error, QString("Log upload failed!"));
-    } else {
-        m_model->append(MessageLevel::Launcher, QString("Log uploaded to: %1").arg(url.value()));
-    }
-}
 
 void LogPage::on_btnCopy_clicked()
 {

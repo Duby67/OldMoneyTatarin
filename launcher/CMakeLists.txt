@@ -122,8 +122,6 @@ set(NET_SOURCES
     net/NetJob.cpp
     net/NetJob.h
     net/NetUtils.h
-    net/PasteUpload.cpp
-    net/PasteUpload.h
     net/Sink.h
     net/Validator.h
     net/Upload.cpp
@@ -843,8 +841,6 @@ SET(LAUNCHER_SOURCES
     ui/setupwizard/JavaWizardPage.h
     ui/setupwizard/LanguageWizardPage.cpp
     ui/setupwizard/LanguageWizardPage.h
-    ui/setupwizard/PasteWizardPage.cpp
-    ui/setupwizard/PasteWizardPage.h
     ui/setupwizard/ThemeWizardPage.h
     ui/setupwizard/AutoJavaWizardPage.cpp
     ui/setupwizard/AutoJavaWizardPage.h
@@ -1179,7 +1175,6 @@ endif()
 
 qt_wrap_ui(LAUNCHER_UI
     ui/MainWindow.ui
-    ui/setupwizard/PasteWizardPage.ui
     ui/setupwizard/AutoJavaWizardPage.ui
     ui/setupwizard/LoginWizardPage.ui
     ui/pages/global/AccountListPage.ui

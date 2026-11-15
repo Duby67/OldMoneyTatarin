@@ -45,7 +45,6 @@
 
 #include "DataMigrationTask.h"
 #include "java/JavaInstallList.h"
-#include "net/PasteUpload.h"
 #include "tasks/Task.h"
 #include "tools/GenericProfiler.h"
 #include "ui/InstanceWindow.h"
@@ -71,7 +70,6 @@
 #include "ui/setupwizard/JavaWizardPage.h"
 #include "ui/setupwizard/LanguageWizardPage.h"
 #include "ui/setupwizard/LoginWizardPage.h"
-#include "ui/setupwizard/PasteWizardPage.h"
 #include "ui/setupwizard/SetupWizard.h"
 #include "ui/setupwizard/ThemeWizardPage.h"
 
@@ -842,29 +840,7 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
         // in future, more pages may be added - so this name is chosen to avoid needing migration
         m_settings->registerSetting("WorldManagementGeometry", "");
 
-        // HACK: This code feels so stupid is there a less stupid way of doing this?
-        {
-            m_settings->registerSetting("PastebinURL", "");
-            m_settings->registerSetting("PastebinType", PasteUpload::PasteType::Mclogs);
-            m_settings->registerSetting("PastebinCustomAPIBase", "");
 
-            QString pastebinURL = m_settings->get("PastebinURL").toString();
-
-            bool userHadDefaultPastebin = pastebinURL == "https://0x0.st";
-            if (!pastebinURL.isEmpty() && !userHadDefaultPastebin) {
-                m_settings->set("PastebinType", PasteUpload::PasteType::NullPointer);
-                m_settings->set("PastebinCustomAPIBase", pastebinURL);
-                m_settings->reset("PastebinURL");
-            }
-
-            bool ok;
-            int pasteType = m_settings->get("PastebinType").toInt(&ok);
-            // If PastebinType is invalid then reset the related settings.
-            if (!ok || !(PasteUpload::PasteType::First <= pasteType && pasteType <= PasteUpload::PasteType::Last)) {
-                m_settings->reset("PastebinType");
-                m_settings->reset("PastebinCustomAPIBase");
-            }
-        }
         {
             auto resetIfInvalid = [this](const Setting* setting) {
                 if (const auto value = setting->get().toString(); !value.isEmpty()) {
@@ -1232,12 +1208,11 @@ bool Application::createSetupWizard()
     bool askjava = BuildConfig.JAVA_DOWNLOADER_ENABLED && !javaRequired && !settings()->get("AutomaticJavaDownload").toBool() &&
                    !settings()->get("AutomaticJavaSwitch").toBool() && !settings()->get("UserAskedAboutAutomaticJavaDownload").toBool();
     bool languageRequired = settings()->get("Language").toString().isEmpty();
-    bool pasteInterventionRequired = settings()->get("PastebinURL") != "";
     bool validWidgets = m_themeManager->isValidApplicationTheme(settings()->get("ApplicationTheme").toString());
     bool validIcons = m_themeManager->isValidIconTheme(settings()->get("IconTheme").toString());
     bool login = !m_accounts->anyAccountIsValid() && capabilities() & Application::SupportsMSA;
     bool themeInterventionRequired = !validWidgets || !validIcons;
-    bool wizardRequired = javaRequired || languageRequired || pasteInterventionRequired || themeInterventionRequired || askjava || login;
+    bool wizardRequired = javaRequired || languageRequired || themeInterventionRequired || askjava || login;
     if (wizardRequired) {
         // set default theme after going into theme wizard
         if (!validIcons)
@@ -1266,9 +1241,7 @@ bool Application::createSetupWizard()
             m_setupWizard->addPage(new AutoJavaWizardPage(m_setupWizard));
         }
 
-        if (pasteInterventionRequired) {
-            m_setupWizard->addPage(new PasteWizardPage(m_setupWizard));
-        }
+
 
         if (themeInterventionRequired) {
             m_setupWizard->addPage(new ThemeWizardPage(m_setupWizard));

@@ -74,7 +74,6 @@ class LogPage : public QWidget, public BasePage {
     void retranslate() override;
 
    private slots:
-    void on_btnPaste_clicked();
     void on_btnCopy_clicked();
     void on_btnClear_clicked();
     void on_btnBottom_clicked();

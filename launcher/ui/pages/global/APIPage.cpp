@@ -49,8 +49,6 @@
 
 #include "Application.h"
 #include "BuildConfig.h"
-#include "PineconeNetworkCheck.h"
-#include "net/PasteUpload.h"
 #include "net/flame/FetchFlameAPIKey.h"
 #include "settings/SettingsObject.h"
 #include "tools/BaseProfiler.h"
@@ -59,27 +57,18 @@
 APIPage::APIPage(QWidget* parent) : QWidget(parent), ui(new Ui::APIPage)
 {
     // This is here so you can reorder the entries in the combobox without messing stuff up
-    int comboBoxEntries[] = { PasteUpload::PasteType::Mclogs, PasteUpload::PasteType::NullPointer, PasteUpload::PasteType::PasteGG,
-                              PasteUpload::PasteType::Hastebin };
-
     static const QRegularExpression s_validUrlRegExp("https?://.+");
     static const QRegularExpression s_validMSAClientID(
         QRegularExpression::anchoredPattern("[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}"));
 
     ui->setupUi(this);
 
-    for (auto pasteType : comboBoxEntries) {
-        ui->pasteTypeComboBox->addItem(PasteUpload::PasteTypes.at(pasteType).name, pasteType);
-    }
 
-    void (QComboBox::*currentIndexChangedSignal)(int)(&QComboBox::currentIndexChanged);
-    connect(ui->pasteTypeComboBox, currentIndexChangedSignal, this, &APIPage::updateBaseURLPlaceholder);
+
     // This function needs to be called even when the ComboBox's index is still in its default state.
-    updateBaseURLPlaceholder(ui->pasteTypeComboBox->currentIndex());
     // NOTE: this allows http://, but we replace that with https later anyway
     ui->metaURL->setValidator(new QRegularExpressionValidator(s_validUrlRegExp, ui->metaURL));
     ui->resourceURL->setValidator(new QRegularExpressionValidator(s_validUrlRegExp, ui->resourceURL));
-    ui->baseURLEntry->setValidator(new QRegularExpressionValidator(s_validUrlRegExp, ui->baseURLEntry));
     ui->legacyFMLLibsURL->setValidator(new QRegularExpressionValidator(s_validUrlRegExp, ui->legacyFMLLibsURL));
     ui->msaClientID->setValidator(new QRegularExpressionValidator(s_validMSAClientID, ui->msaClientID));
 
@@ -90,25 +79,18 @@ APIPage::APIPage(QWidget* parent) : QWidget(parent), ui(new Ui::APIPage)
 
     loadSettings();
 
-    resetBaseURLNote();
-    connect(ui->pasteTypeComboBox, currentIndexChangedSignal, this, &APIPage::updateBaseURLNote);
-    connect(ui->baseURLEntry, &QLineEdit::textEdited, this, &APIPage::resetBaseURLNote);
 
-    onAutoServersChanged();
     connect(ui->setHostedServers, &QPushButton::clicked, this, [this] {
-        constexpr auto key = PineconeNetworkCheck::Result::UsePrimary;
-        ui->metaURL->setText(PineconeNetworkCheck::metaUrls().value(key));
-        ui->legacyFMLLibsURL->setText(PineconeNetworkCheck::fmlLibsUrls().value(key));
+        ui->metaURL->setText(QStringLiteral(""));
+        ui->legacyFMLLibsURL->setText(QStringLiteral(""));
     });
     connect(ui->setGitHubNew, &QPushButton::clicked, this, [this] {
-        constexpr auto key = PineconeNetworkCheck::Result::UseNewFallback;
-        ui->metaURL->setText(PineconeNetworkCheck::metaUrls().value(key));
-        ui->legacyFMLLibsURL->setText(PineconeNetworkCheck::fmlLibsUrls().value(key));
+        ui->metaURL->setText(QStringLiteral("https://pineconemc.github.io/meta/v1/"));
+        ui->legacyFMLLibsURL->setText(QStringLiteral("https://pineconemc.github.io/files/fmllibs/"));
     });
     connect(ui->setGitHubOld, &QPushButton::clicked, this, [this] {
-        constexpr auto key = PineconeNetworkCheck::Result::UseOldFallback;
-        ui->metaURL->setText(PineconeNetworkCheck::metaUrls().value(key));
-        ui->legacyFMLLibsURL->setText(PineconeNetworkCheck::fmlLibsUrls().value(key));
+        ui->metaURL->setText(QStringLiteral("https://elyprismlauncher.github.io/meta/v1/"));
+        ui->legacyFMLLibsURL->setText(QStringLiteral("https://elyprismlauncher.github.io/files/fmllibs/"));
     });
 
     connect(ui->fetchFlameKey, &QPushButton::clicked, this, [this] {
@@ -132,57 +114,17 @@ APIPage::~APIPage()
     delete ui;
 }
 
-void APIPage::resetBaseURLNote()
-{
-    ui->baseURLNote->hide();
-    baseURLPasteType = ui->pasteTypeComboBox->currentIndex();
-}
 
-void APIPage::updateBaseURLNote(int index)
-{
-    if (baseURLPasteType == index) {
-        ui->baseURLNote->hide();
-    } else if (!ui->baseURLEntry->text().isEmpty()) {
-        ui->baseURLNote->show();
-    }
-}
 
-void APIPage::updateBaseURLPlaceholder(int index)
-{
-    int pasteType = ui->pasteTypeComboBox->itemData(index).toInt();
-    QString pasteDefaultURL = PasteUpload::PasteTypes.at(pasteType).defaultBase;
-    ui->baseURLEntry->setPlaceholderText(pasteDefaultURL);
-}
 
-void APIPage::onAutoServersChanged() const
-{
-    ui->setHostedServers->setEnabled(!autoServers);
-    ui->setGitHubNew->setEnabled(!autoServers);
-    ui->setGitHubOld->setEnabled(!autoServers);
 
-    ui->metaURL->setEnabled(!autoServers);
-    ui->legacyFMLLibsURL->setEnabled(!autoServers);
-    if (autoServers) {
-        ui->metaURL->clear();
-        ui->legacyFMLLibsURL->clear();
-    }
-}
+
+
+
 
 void APIPage::loadSettings()
 {
     auto s = APPLICATION->settings();
-
-    int pasteType = s->get("PastebinType").toInt();
-    QString pastebinURL = s->get("PastebinCustomAPIBase").toString();
-
-    ui->baseURLEntry->setText(pastebinURL);
-    int pasteTypeIndex = ui->pasteTypeComboBox->findData(pasteType);
-    if (pasteTypeIndex == -1) {
-        pasteTypeIndex = ui->pasteTypeComboBox->findData(PasteUpload::PasteType::Mclogs);
-        ui->baseURLEntry->clear();
-    }
-
-    ui->pasteTypeComboBox->setCurrentIndex(pasteTypeIndex);
 
     if (bool fallbackMRBlockedMods = s->get("FallbackMRBlockedMods").toBool()) {
         ui->FallbackMRBlockedMods->setChecked(fallbackMRBlockedMods);
@@ -212,8 +154,6 @@ void APIPage::applySettings()
 {
     auto s = APPLICATION->settings();
 
-    s->set("PastebinType", ui->pasteTypeComboBox->currentData().toInt());
-    s->set("PastebinCustomAPIBase", ui->baseURLEntry->text());
 
     QString msaClientID = ui->msaClientID->text();
     s->set("MSAClientIDOverride", msaClientID);

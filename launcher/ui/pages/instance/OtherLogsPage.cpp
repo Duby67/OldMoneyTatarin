@@ -352,11 +352,7 @@ void OtherLogsPage::reload()
     }
 }
 
-void OtherLogsPage::on_btnPaste_clicked()
-{
-    QString name = m_currentFile.isEmpty() ? displayName() : m_currentFile;
-    GuiUtil::uploadPaste(name, ui->text->toPlainText(), this);
-}
+
 
 void OtherLogsPage::on_btnCopy_clicked()
 {
@@ -492,7 +488,6 @@ void OtherLogsPage::setControlsEnabled(const bool enabled)
 
     ui->btnReload->setEnabled(enabled);
     ui->btnCopy->setEnabled(enabled);
-    ui->btnPaste->setEnabled(enabled);
     ui->text->setEnabled(enabled);
 }
 

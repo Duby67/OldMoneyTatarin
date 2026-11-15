@@ -60,11 +60,6 @@ class APIPage : public QWidget, public BasePage {
     void retranslate() override;
 
    private:
-    int baseURLPasteType;
-    void resetBaseURLNote();
-    void updateBaseURLNote(int index);
-    void updateBaseURLPlaceholder(int index);
-    void onAutoServersChanged() const;
     void loadSettings();
     void applySettings();
 

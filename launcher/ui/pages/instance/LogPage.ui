@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <ui version="4.0">
  <class>LogPage</class>
  <widget class="QWidget" name="LogPage">
@@ -29,7 +29,7 @@
       <bool>true</bool>
      </property>
      <property name="plainText">
-      <string notr="true"/>
+      <string notr="true" />
      </property>
      <property name="textInteractionFlags">
       <set>Qt::LinksAccessibleByKeyboard|Qt::LinksAccessibleByMouse|Qt::TextBrowserInteraction|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -95,15 +95,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="btnPaste">
-       <property name="toolTip">
-        <string>Upload the log to the paste service configured in preferences</string>
-       </property>
-       <property name="text">
-        <string>Upload</string>
-       </property>
-      </widget>
-     </item>
+      </item>
      <item>
       <widget class="QPushButton" name="btnClear">
        <property name="toolTip">
@@ -173,11 +165,10 @@
   <tabstop>wrapCheckbox</tabstop>
   <tabstop>colorCheckbox</tabstop>
   <tabstop>btnCopy</tabstop>
-  <tabstop>btnPaste</tabstop>
   <tabstop>btnClear</tabstop>
   <tabstop>text</tabstop>
   <tabstop>findButton</tabstop>
  </tabstops>
- <resources/>
- <connections/>
+ <resources />
+ <connections />
 </ui>

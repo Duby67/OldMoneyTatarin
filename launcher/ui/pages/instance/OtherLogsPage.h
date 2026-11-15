@@ -68,7 +68,6 @@ class OtherLogsPage : public QWidget, public BasePage {
     void populateSelectLogBox();
     void on_selectLogBox_currentIndexChanged(int index);
     void on_btnReload_clicked();
-    void on_btnPaste_clicked();
     void on_btnCopy_clicked();
     void on_btnDelete_clicked();
     void on_btnClean_clicked();
