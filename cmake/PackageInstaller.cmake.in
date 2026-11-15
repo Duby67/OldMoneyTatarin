@@ -1,0 +1,38 @@
+if(NOT "$<CONFIG>" STREQUAL "Release")
+    message(FATAL_ERROR "Установщик разрешено собирать только для Release")
+endif()
+set(stage "@INSTALLER_STAGE@")
+set(expected "@CMAKE_BINARY_DIR@/installer/$<CONFIG>/app")
+cmake_path(ABSOLUTE_PATH stage NORMALIZE OUTPUT_VARIABLE resolved_stage)
+cmake_path(ABSOLUTE_PATH expected NORMALIZE OUTPUT_VARIABLE resolved_expected)
+if(NOT resolved_stage STREQUAL resolved_expected OR NOT resolved_stage MATCHES "/installer/[^/]+/app$")
+    message(FATAL_ERROR "Небезопасный путь staging установщика")
+endif()
+# Упаковываем только свежую установку CMake, не пользовательскую папку приложения.
+file(REMOVE_RECURSE "${resolved_stage}")
+execute_process(COMMAND "@CMAKE_COMMAND@" --install "@CMAKE_BINARY_DIR@"
+    --config "$<CONFIG>" --prefix "${resolved_stage}"
+    RESULT_VARIABLE install_result)
+if(NOT install_result EQUAL 0)
+    message(FATAL_ERROR "Не удалось подготовить файлы установщика")
+endif()
+set(runtime_libraries "@INSTALLER_RUNTIME_LIBRARIES@")
+foreach(runtime IN LISTS runtime_libraries)
+    file(COPY "${runtime}" DESTINATION "${resolved_stage}")
+endforeach()
+file(COPY "@CMAKE_SOURCE_DIR@/LICENSE" "@CMAKE_SOURCE_DIR@/COPYING.md"
+     DESTINATION "${resolved_stage}/licenses/launcher")
+foreach(required IN ITEMS "@Launcher_APP_BINARY_NAME@.exe" "Qt6Core.dll" "platforms/qwindows.dll" "jars/NewLaunch.jar")
+    if(NOT EXISTS "${resolved_stage}/${required}")
+        message(FATAL_ERROR "В пакете отсутствует ${required}")
+    endif()
+endforeach()
+if(EXISTS "${resolved_stage}/portable.txt")
+    message(FATAL_ERROR "Установщик не должен включать portable.txt")
+endif()
+execute_process(COMMAND "@OldMoneyTatarin_ISCC_EXECUTABLE@" "/Qp"
+    "@CMAKE_BINARY_DIR@/installer/$<CONFIG>/windows.iss"
+    RESULT_VARIABLE compiler_result)
+if(NOT compiler_result EQUAL 0)
+    message(FATAL_ERROR "Ошибка компилятора Inno Setup")
+endif()

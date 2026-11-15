@@ -46,6 +46,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build.ps1 -Jobs 6 -I
 | `-Configuration` | `Release` по умолчанию, также `Debug` и `RelWithDebInfo` |
 | `-Jobs` | Число параллельных задач, по умолчанию 2 |
 | `-Install` | Скопировать приложение и зависимости в локальную установку |
+| `-Installer` | Собрать Release-установщик через локальный Inno Setup; [подробности](RELEASING.md#локальный-установщик-windows) |
 | `-ConfigureOnly` | Выполнить только конфигурацию CMake |
 | `-BuildDirectory` | Другой каталог сборки; новый пустой каталог позволяет проверить сборку с нуля |
 | `-QtRoot`, `-VcpkgRoot`, `-JavaHome` | Пути к собственным установкам инструментов |

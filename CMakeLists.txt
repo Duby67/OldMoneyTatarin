@@ -334,3 +334,5 @@ add_subdirectory(buildconfig)
 
 # NOTE: this must always be last to appease the CMake deity of quirky install command evaluation order.
 add_subdirectory(launcher)
+
+include(cmake/Installer.cmake)

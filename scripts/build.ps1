@@ -8,10 +8,12 @@ param(
     [ValidateRange(1, 64)]
     [int]$Jobs = 2,
     [switch]$ConfigureOnly,
-    [switch]$Install
+    [switch]$Install,
+    [switch]$Installer
 )
 
 $ErrorActionPreference = 'Stop'
+if ($Installer -and $Configuration -ne 'Release') { throw 'Установщик собирается только для Release.' }
 $repoRoot = Split-Path -Parent $PSScriptRoot
 if (-not $BuildDirectory) { $BuildDirectory = Join-Path $repoRoot 'dist/build/windows_msvc' }
 elseif (-not [IO.Path]::IsPathRooted($BuildDirectory)) { $BuildDirectory = Join-Path $repoRoot $BuildDirectory }
@@ -65,6 +67,10 @@ try {
     if ($Install) {
         & cmake --install $BuildDirectory --config $Configuration
         if ($LASTEXITCODE -ne 0) { throw 'Ошибка установки в dist/app/windows_msvc.' }
+    }
+    if ($Installer) {
+        & cmake --build $BuildDirectory --config Release --target installer --parallel $Jobs
+        if ($LASTEXITCODE -ne 0) { throw 'Ошибка сборки установщика Inno Setup.' }
     }
 }
 finally { Pop-Location }
