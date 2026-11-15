@@ -789,9 +789,6 @@ SET(LAUNCHER_SOURCES
     Markdown.h
     Markdown.cpp
 
-    # Super secret!
-    KonamiCode.h
-    KonamiCode.cpp
 
     # Icons
     icons/MMCIcon.h
@@ -854,10 +851,6 @@ SET(LAUNCHER_SOURCES
     ui/themes/IconTheme.h
     ui/themes/ThemeManager.cpp
     ui/themes/ThemeManager.h
-    ui/themes/CatPack.cpp
-    ui/themes/CatPack.h
-    ui/themes/CatPainter.cpp
-    ui/themes/CatPainter.h
 
     # Processes
     LaunchMode.h
@@ -1229,7 +1222,6 @@ qt_wrap_ui(PRISM_UPDATE_UI
     set (LAUNCHER_UI ${LAUNCHER_UI} ${PRISM_UPDATE_UI})
 
 qt_add_resources(LAUNCHER_RESOURCES
-    resources/backgrounds/backgrounds.qrc
     resources/multimc/multimc.qrc
     resources/pe_dark/pe_dark.qrc
     resources/pe_light/pe_light.qrc

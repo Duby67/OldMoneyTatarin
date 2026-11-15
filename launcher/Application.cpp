@@ -643,8 +643,6 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
         // Theming
         m_settings->registerSetting("IconTheme", QString());
         m_settings->registerSetting("ApplicationTheme", QString());
-        m_settings->registerSetting("BackgroundCat", QString("kitteh"));
-        m_settings->registerSetting("CatButtonVisible", true);
 
         // Remembered state
         m_settings->registerSetting("LastUsedGroupForNewInstance", QString());
@@ -798,9 +796,6 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
         m_settings->registerSetting({ "PostExitCommand", "PostExitCmd" }, "");
 
         // The cat
-        m_settings->registerSetting("TheCat", false);
-        m_settings->registerSetting("CatOpacity", 100);
-        m_settings->registerSetting("CatFit", "fit");
 
         m_settings->registerSetting("StatusBarVisible", true);
 

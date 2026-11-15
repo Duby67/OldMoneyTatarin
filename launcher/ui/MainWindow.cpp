@@ -121,7 +121,6 @@
 #include "modplatform/flame/FlameAPI.h"
 #include "modplatform/flame/FlameModIndex.h"
 
-#include "KonamiCode.h"
 
 #include "InstanceCopyTask.h"
 #include "InstanceDirUpdate.h"
@@ -258,11 +257,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
         connect(q, &QShortcut::activated, APPLICATION, &Application::quit);
     }
 
-    // Konami Code
-    {
-        secretEventFilter = new KonamiCode(this);
-        connect(secretEventFilter, &KonamiCode::triggered, this, &MainWindow::konamiTriggered);
-    }
+
 
 
 
@@ -310,16 +305,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
         connect(view, &InstanceView::groupStateChanged, APPLICATION->instances(), &InstanceList::on_GroupStateChanged);
         ui->horizontalLayout->addWidget(view);
     }
-    // The cat background
-    {
-        // set the cat action priority here so you can still see the action in qt designer
-        ui->actionCAT->setPriority(QAction::LowPriority);
-        bool cat_enable = APPLICATION->settings()->get("TheCat").toBool();
-        ui->actionCAT->setChecked(cat_enable);
-        connect(ui->actionCAT, &QAction::toggled, this, &MainWindow::onCatToggled);
-        connect(APPLICATION, &Application::currentCatChanged, this, &MainWindow::onCatChanged);
-        setCatBackground(cat_enable);
-    }
+
 
     // Togglable status bar
     {
@@ -474,26 +460,7 @@ void MainWindow::lockToolbars(bool state)
     APPLICATION->settings()->set("ToolbarsLocked", state);
 }
 
-void MainWindow::konamiTriggered()
-{
-    QString gradient =
-        " stop:0 rgba(125, 0, 0, 255), stop:0.166 rgba(125, 125, 0, 255), stop:0.333 rgba(0, 125, 0, 255), stop:0.5 rgba(0, 125, 125, "
-        "255), stop:0.666 rgba(0, 0, 125, 255), stop:0.833 rgba(125, 0, 125, 255), stop:1 rgba(125, 0, 0, 255));";
-    QString stylesheet = "background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0," + gradient;
-    if (ui->mainToolBar->styleSheet() == stylesheet) {
-        ui->mainToolBar->setStyleSheet("");
-        ui->instanceToolBar->setStyleSheet("");
-        ui->centralWidget->setStyleSheet("");
-        ui->statusBar->setStyleSheet("");
-        qDebug() << "Super Secret Mode DEACTIVATED!";
-    } else {
-        ui->mainToolBar->setStyleSheet(stylesheet);
-        ui->instanceToolBar->setStyleSheet("background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1," + gradient);
-        ui->centralWidget->setStyleSheet("background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1," + gradient);
-        ui->statusBar->setStyleSheet(stylesheet);
-        qDebug() << "Super Secret Mode ACTIVATED!";
-    }
-}
+
 
 void MainWindow::showInstanceContextMenu(const QPoint& pos)
 {
@@ -562,7 +529,6 @@ void MainWindow::updateMainToolBar()
 {
     ui->menuBar->setVisible(APPLICATION->settings()->get("MenuBarInsteadOfToolBar").toBool());
     ui->mainToolBar->setVisible(ui->menuBar->isNativeMenuBar() || !APPLICATION->settings()->get("MenuBarInsteadOfToolBar").toBool());
-    ui->actionCAT->setVisible(APPLICATION->settings()->get("CatButtonVisible").toBool());
 }
 
 void MainWindow::updateLaunchButton()
@@ -743,7 +709,6 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* ev)
 {
     if (obj == view) {
         if (ev->type() == QEvent::KeyPress) {
-            secretEventFilter->input(ev);
             QKeyEvent* keyEvent = static_cast<QKeyEvent*>(ev);
             switch (keyEvent->key()) {
                     /*
@@ -789,17 +754,9 @@ QString intListToString(const QList<int>& list)
     return slist.join(',');
 }
 
-void MainWindow::onCatToggled(bool state)
-{
-    setCatBackground(state);
-    APPLICATION->settings()->set("TheCat", state);
-}
 
-void MainWindow::setCatBackground(bool enabled)
-{
-    view->setPaintCat(enabled);
-    view->viewport()->repaint();
-}
+
+
 
 void MainWindow::runModalTask(Task* task)
 {
@@ -1278,10 +1235,7 @@ void MainWindow::on_actionViewWidgetThemeFolder_triggered()
     DesktopServices::openPath(APPLICATION->themeManager()->getApplicationThemesFolder().path(), true);
 }
 
-void MainWindow::on_actionViewCatPackFolder_triggered()
-{
-    DesktopServices::openPath(APPLICATION->themeManager()->getCatPacksFolder().path(), true);
-}
+
 
 void MainWindow::on_actionViewIconsFolder_triggered()
 {
@@ -1398,10 +1352,7 @@ void MainWindow::on_actionAddToPATH_triggered()
 
 
 
-void MainWindow::onCatChanged(int)
-{
-    setCatBackground(APPLICATION->settings()->get("TheCat").toBool());
-}
+
 
 
 
