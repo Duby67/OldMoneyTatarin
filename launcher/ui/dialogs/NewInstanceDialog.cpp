@@ -59,6 +59,7 @@
 
 #include "ui/pages/modplatform/CustomPage.h"
 #include "ui/pages/modplatform/ImportPage.h"
+#include "tatarin/CatalogPage.h"
 #include "ui/pages/modplatform/atlauncher/AtlPage.h"
 #include "ui/pages/modplatform/flame/FlamePage.h"
 #include "ui/pages/modplatform/ftb/FtbPage.h"
@@ -168,6 +169,7 @@ QList<BasePage*> NewInstanceDialog::getPages()
     importPage = new ImportPage(this);
 
     pages.append(new CustomPage(this));
+    pages.append(new Tatarin::CatalogPage(this));
     pages.append(importPage);
     pages.append(new AtlPage(this));
     if (APPLICATION->capabilities() & Application::SupportsFlame)

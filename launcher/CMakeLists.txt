@@ -5,6 +5,12 @@ project(application)
 ######## Sources and headers ########
 
 set(CORE_SOURCES
+    tatarin/Repository.h
+    tatarin/Repository.cpp
+    tatarin/CreationTask.h
+    tatarin/CreationTask.cpp
+    tatarin/CatalogPage.h
+    tatarin/CatalogPage.cpp
     # LOGIC - Base classes and infrastructure
     BaseInstaller.h
     BaseInstaller.cpp
