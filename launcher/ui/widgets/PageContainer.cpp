@@ -241,13 +241,7 @@ void PageContainer::showPage(int row)
 
 void PageContainer::help()
 {
-    if (m_currentPage) {
-        QString pageId = m_currentPage->helpPage();
-        if (pageId.isEmpty()) {
-            return;
-        }
-        DesktopServices::openUrl(QUrl(BuildConfig.HELP_URL.arg(pageId)));
-    }
+    // No external upstream help service is configured.
 }
 
 void PageContainer::currentChanged(const QModelIndex& current)

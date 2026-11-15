@@ -94,11 +94,8 @@ class MainWindow : public QMainWindow {
 
     void on_actionAddInstance_triggered();
 
-    void on_actionREDDIT_triggered();
 
-    void on_actionMATRIX_triggered();
 
-    void on_actionDISCORD_triggered();
 
     void on_actionCopyInstance_triggered();
 
@@ -130,7 +127,6 @@ class MainWindow : public QMainWindow {
 
     void on_actionManageAccounts_triggered();
 
-    void on_actionReportBug_triggered();
 
     void on_actionClearMetadata_triggered();
 
@@ -138,7 +134,6 @@ class MainWindow : public QMainWindow {
     void on_actionAddToPATH_triggered();
 #endif
 
-    void on_actionOpenWiki_triggered();
 
 
 

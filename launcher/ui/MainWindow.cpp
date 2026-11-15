@@ -211,10 +211,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     // hide, disable and show stuff
     {
-        ui->actionReportBug->setVisible(!BuildConfig.BUG_TRACKER_URL.isEmpty());
-        ui->actionMATRIX->setVisible(!BuildConfig.MATRIX_URL.isEmpty());
-        ui->actionDISCORD->setVisible(!BuildConfig.DISCORD_URL.isEmpty());
-        ui->actionREDDIT->setVisible(!BuildConfig.SUBREDDIT_URL.isEmpty());
 
         ui->actionCheckUpdate->setVisible(APPLICATION->updaterEnabled());
 
@@ -1143,20 +1139,11 @@ void MainWindow::processURLs(QList<QUrl> urls)
     }
 }
 
-void MainWindow::on_actionREDDIT_triggered()
-{
-    DesktopServices::openUrl(QUrl(BuildConfig.SUBREDDIT_URL));
-}
 
-void MainWindow::on_actionDISCORD_triggered()
-{
-    DesktopServices::openUrl(QUrl(BuildConfig.DISCORD_URL));
-}
 
-void MainWindow::on_actionMATRIX_triggered()
-{
-    DesktopServices::openUrl(QUrl(BuildConfig.MATRIX_URL));
-}
+
+
+
 
 void MainWindow::on_actionChangeInstIcon_triggered()
 {
@@ -1367,10 +1354,7 @@ void MainWindow::on_actionManageAccounts_triggered()
     APPLICATION->ShowGlobalSettings(this, "accounts");
 }
 
-void MainWindow::on_actionReportBug_triggered()
-{
-    DesktopServices::openUrl(QUrl(BuildConfig.BUG_TRACKER_URL));
-}
+
 
 void MainWindow::on_actionClearMetadata_triggered()
 {
@@ -1409,10 +1393,7 @@ void MainWindow::on_actionAddToPATH_triggered()
 }
 #endif
 
-void MainWindow::on_actionOpenWiki_triggered()
-{
-    DesktopServices::openUrl(QUrl(BuildConfig.WIKI_URL));
-}
+
 
 
 
