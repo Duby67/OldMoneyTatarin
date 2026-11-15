@@ -104,7 +104,6 @@ InstanceWindow::InstanceWindow(BaseInstance* instance, QWidget* parent) : QMainW
 
         m_container->addButtons(horizontalLayout);
 
-        connect(m_instance, &BaseInstance::profilerChanged, this, &InstanceWindow::updateButtons);
         connect(APPLICATION, &Application::globalSettingsApplied, this, &InstanceWindow::updateButtons);
     }
 
