@@ -1,0 +1,10 @@
+# Единственный источник версии нашего продукта — VERSION, независимо от upstream.
+file(READ "${CMAKE_CURRENT_LIST_DIR}/../VERSION" OldMoneyTatarin_VERSION_TAG)
+string(STRIP "${OldMoneyTatarin_VERSION_TAG}" OldMoneyTatarin_VERSION_TAG)
+if(NOT OldMoneyTatarin_VERSION_TAG MATCHES "^v(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$")
+    message(FATAL_ERROR "VERSION должен содержать vX.Y.Z без ведущих нулей")
+endif()
+set(OldMoneyTatarin_VERSION_MAJOR "${CMAKE_MATCH_1}")
+set(OldMoneyTatarin_VERSION_MINOR "${CMAKE_MATCH_2}")
+set(OldMoneyTatarin_VERSION_PATCH "${CMAKE_MATCH_3}")
+set(OldMoneyTatarin_VERSION "${OldMoneyTatarin_VERSION_MAJOR}.${OldMoneyTatarin_VERSION_MINOR}.${OldMoneyTatarin_VERSION_PATCH}")

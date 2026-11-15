@@ -1,0 +1,338 @@
+cmake_minimum_required(VERSION 3.25) # Required for features like `CMAKE_MSVC_DEBUG_INFORMATION_FORMAT`
+
+project(Launcher LANGUAGES C CXX)
+if(NOT WIN32 OR NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+    message(FATAL_ERROR "Only 64-bit Windows builds are supported")
+endif()
+
+string(COMPARE EQUAL "${CMAKE_SOURCE_DIR}" "${CMAKE_BUILD_DIR}" IS_IN_SOURCE_BUILD)
+if(IS_IN_SOURCE_BUILD)
+    message(FATAL_ERROR "You are building the Launcher in-source. Please separate the build tree from the source tree.")
+endif()
+
+##################################### Set CMake options #####################################
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/")
+
+# Output all executables and shared libs in the main build folder, not in subfolders.
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+set(CMAKE_JAVA_TARGET_OUTPUT_DIR ${PROJECT_BINARY_DIR}/jars)
+
+######## Set compiler flags ########
+set(CMAKE_CXX_STANDARD_REQUIRED true)
+set(CMAKE_C_STANDARD_REQUIRED true)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_C_STANDARD 11)
+include(GenerateExportHeader)
+
+add_compile_definitions($<$<NOT:$<CONFIG:Debug>>:QT_NO_DEBUG>)
+add_compile_definitions(QT_WARN_DEPRECATED_UP_TO=0x060400)
+add_compile_definitions(QT_DISABLE_DEPRECATED_UP_TO=0x060400)
+
+if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+    add_compile_options(
+        # /GS Adds buffer security checks, default on but included anyway to mirror gcc's fstack-protector flag
+        "$<$<COMPILE_LANGUAGE:C,CXX>:/GS>"
+
+        # /Gw helps reduce binary size
+        # /Gy allows the compiler to package individual functions
+        # /guard:cf enables control flow guard
+        "$<$<AND:$<CONFIG:Release,RelWithDebInfo>,$<COMPILE_LANGUAGE:C,CXX>>:/Gw;/Gy;/guard:cf>"
+    )
+
+    add_link_options(
+        # /MANIFEST:NO disables generating a manifest file, we instead provide our own
+        # /STACK sets the stack reserve size, ATL's pack list needs 3-4 MiB as of November 2022, provide 8 MiB
+        "$<$<COMPILE_LANGUAGE:C,CXX>:/MANIFEST:NO;/STACK:8388608>"
+    )
+
+    # See https://github.com/ccache/ccache/issues/1040
+    # TODO(@getchoo): Is sccache affected by this? Would be nice to use `ProgramDatabase`....
+    set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug,RelWithDebInfo>:Embedded>")
+
+    if(CMAKE_MSVC_RUNTIME_LIBRARY STREQUAL "MultiThreadedDLL")
+        set(CMAKE_MAP_IMPORTED_CONFIG_DEBUG Release "")
+        set(CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release "")
+    endif()
+else()
+    add_compile_options("$<$<COMPILE_LANGUAGE:C,CXX>:-fstack-protector-strong;--param=ssp-buffer-size=4>")
+
+    # Avoid re-defining _FORTIFY_SOURCE, as it can cause redefinition errors in setups that use it by default (i.e., package builds)
+    if(NOT (CMAKE_C_FLAGS MATCHES "-D_FORTIFY_SOURCE" OR CMAKE_CXX_FLAGS MATCHES "-D_FORTIFY_SOURCE"))
+        # NOTE: _FORTIFY_SOURCE requires optimizations in most newer versions of glibc
+        add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:C,CXX>,$<CONFIG:Release,RelWithDebInfo>>:-D_FORTIFY_SOURCE=2>")
+    endif()
+
+    # ATL's pack list needs more than the default 1 Mib stack on windows
+    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+        add_link_options("$<$<COMPILE_LANGUAGE:C,CXX>:-Wl,--stack,8388608>")
+
+        # -ffunction-sections and -fdata-sections help reduce binary size
+        # -mguard=cf enables Control Flow Guard
+        # TODO: Look into -gc-sections to further reduce binary size
+        add_compile_options("$<$<AND:$<CONFIG:Release,RelWithDebInfo>,$<COMPILE_LANGUAGE:C,CXX>>:-ffunction-sections;-fdata-sections;-mguard=cf>")
+    endif()
+endif()
+
+# Export compile commands for debug builds if we can (useful in LSPs like clangd)
+# https://cmake.org/cmake/help/v3.31/variable/CMAKE_EXPORT_COMPILE_COMMANDS.html
+if(CMAKE_GENERATOR STREQUAL "Unix Makefiles" OR CMAKE_GENERATOR MATCHES "^Ninja")
+    set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+endif()
+
+option(USE_CLANG_TIDY "Enable the use of clang-tidy during compilation" OFF)
+
+if(USE_CLANG_TIDY)
+    find_program(CLANG_TIDY clang-tidy OPTIONAL)
+    if(CLANG_TIDY)
+        message(STATUS "Using clang-tidy during compilation")
+        set(CLANG_TIDY_COMMAND "${CLANG_TIDY}" "--config-file=${CMAKE_SOURCE_DIR}/.clang-tidy")
+        set(CMAKE_CXX_CLANG_TIDY ${CLANG_TIDY_COMMAND})
+    else()
+        message(WARNING "Unable to find `clang-tidy`. Not using during compilation")
+    endif()
+endif()
+
+option(DEBUG_ADDRESS_SANITIZER "Enable Address Sanitizer in Debug builds" OFF)
+
+# If this is a Debug build turn on address sanitiser
+if (DEBUG_ADDRESS_SANITIZER)
+    message(STATUS "Address Sanitizer enabled for Debug builds, Turn it off with -DDEBUG_ADDRESS_SANITIZER=off")
+
+    set(USE_ASAN_COMPILE_OPTIONS $<AND:$<CONFIG:Debug,RelWithDebInfo>,$<COMPILE_LANGUAGE:C,CXX>>)
+    if (CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+        message(STATUS "Using Address Sanitizer compile options for MSVC frontend")
+        add_compile_options(
+                $<${USE_ASAN_COMPILE_OPTIONS}:/fsanitize=address>
+                $<${USE_ASAN_COMPILE_OPTIONS}:/Oy->
+        )
+    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+        message(STATUS "Using Address Sanitizer compile options for GCC/Clang")
+        add_compile_options(
+                $<${USE_ASAN_COMPILE_OPTIONS}:-fsanitize=address,undefined>
+                $<${USE_ASAN_COMPILE_OPTIONS}:-fno-omit-frame-pointer>
+                $<${USE_ASAN_COMPILE_OPTIONS}:-fno-sanitize-recover=null>
+        )
+        link_libraries("asan" "ubsan")
+    else()
+        message(STATUS "Address Sanitizer not available on compiler ${CMAKE_CXX_COMPILER_ID}")
+    endif()
+endif()
+
+option(ENABLE_LTO "Enable Link Time Optimization" off)
+
+if(ENABLE_LTO)
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT ipo_supported OUTPUT ipo_error)
+
+    if(ipo_supported)
+        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_MINSIZEREL TRUE)
+        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO TRUE)
+        if(CMAKE_BUILD_TYPE)
+            if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+                message(STATUS "IPO / LTO enabled")
+            else()
+                message(STATUS "Not enabling IPO / LTO on debug builds")
+            endif()
+        else()
+            message(STATUS "IPO / LTO will only be enabled for release builds")
+        endif()
+    else()
+        message(STATUS "IPO / LTO not supported: <${ipo_error}>")
+    endif()
+endif()
+
+find_package(ECM NO_MODULE REQUIRED)
+set(CMAKE_MODULE_PATH "${ECM_MODULE_PATH};${CMAKE_MODULE_PATH}")
+
+##################################### Set Application options #####################################
+
+######## Set URLs ########
+set(Launcher_LOGIN_CALLBACK_URL "https://pineconemc.ru/successful-login" CACHE STRING "URL that gets opened when the user successfully logins.")
+set(Launcher_LEGACY_FMLLIBS_BASE_URL "https://files.pineconemc.ru/fmllibs/" CACHE STRING "URL for legacy (<=1.5.2) FML Libraries.")
+
+######## Set version numbers ########
+set(Launcher_VERSION_MAJOR 11)
+set(Launcher_VERSION_MINOR 1)
+set(Launcher_VERSION_PATCH 2)
+
+include(cmake/OldMoneyTatarinVersion.cmake)
+set(Launcher_VERSION_MAJOR "${OldMoneyTatarin_VERSION_MAJOR}")
+set(Launcher_VERSION_MINOR "${OldMoneyTatarin_VERSION_MINOR}")
+set(Launcher_VERSION_PATCH "${OldMoneyTatarin_VERSION_PATCH}")
+
+set(Launcher_VERSION_NAME "${Launcher_VERSION_MAJOR}.${Launcher_VERSION_MINOR}.${Launcher_VERSION_PATCH}")
+set(Launcher_VERSION_NAME4 "${Launcher_VERSION_MAJOR}.${Launcher_VERSION_MINOR}.${Launcher_VERSION_PATCH}.0")
+set(Launcher_VERSION_NAME4_COMMA "${Launcher_VERSION_MAJOR},${Launcher_VERSION_MINOR},${Launcher_VERSION_PATCH},0")
+
+# Build platform.
+set(Launcher_BUILD_PLATFORM "unknown" CACHE STRING "A short string identifying the platform that this build was built for. Used in launcher diagnostics.")
+
+# Github repo URL with releases for updater
+set(Launcher_UPDATER_GITHUB_REPO "https://github.com/Duby67/OldMoneyTatarin" CACHE STRING "Base github URL for the updater.")
+
+# Name to help updater identify valid artifacts
+set(Launcher_BUILD_ARTIFACT "" CACHE STRING "Artifact name to help the updater identify valid artifacts.")
+
+# The metadata server
+set(Launcher_META_URL "https://meta.pineconemc.ru/v1/" CACHE STRING "URL to fetch Launcher's meta files from.")
+
+# Builds
+set(Launcher_QT_VERSION_MAJOR "6" CACHE STRING "Major Qt version to build against")
+
+option(Launcher_USE_PCH "Use precompiled headers where possible" ON)
+
+# Java downloader
+set(Launcher_ENABLE_JAVA_DOWNLOADER_DEFAULT ON)
+
+# Java downloader
+option(Launcher_ENABLE_JAVA_DOWNLOADER "Build the java downloader feature" ${Launcher_ENABLE_JAVA_DOWNLOADER_DEFAULT})
+
+# Native libraries
+set(Launcher_GLFW_LIBRARY_NAME "glfw.dll" CACHE STRING "Name of native glfw library")
+set(Launcher_OPENAL_LIBRARY_NAME "OpenAL.dll" CACHE STRING "Name of native openal library")
+
+# API Keys
+# NOTE: These API keys are here for convenience. If you rebrand this software or intend to break the terms of service
+# of these platforms, please change these API keys beforehand.
+# Be aware that if you were to use these API keys for malicious purposes they might get revoked, which might cause
+# breakage to thousands of users.
+# If you don't plan to use these features of this software, you can just remove these values.
+
+# By using this key in your builds you accept the terms of use laid down in
+# https://docs.microsoft.com/en-us/legal/microsoft-identity-platform/terms-of-use
+set(Launcher_MSA_CLIENT_ID "c36a9fb6-4f2a-41ff-90bd-ae7cc92031eb" CACHE STRING "Client ID you can get from Microsoft Identity Platform when you register an application")
+
+# By using this key in your builds you accept the terms of use laid down in
+# https://account.ely.by/rules
+set(Launcher_ELY_CLIENT_ID "pineconemc" CACHE STRING "Client ID you can get from Ely.by Accounts for developers when you register an application")
+
+# By using this key in your builds you accept the terms and conditions laid down in
+# https://support.curseforge.com/en/support/solutions/articles/9000207405-curse-forge-3rd-party-api-terms-and-conditions
+# NOTE: CurseForge requires you to change this if you make any kind of derivative work.
+# This key was issued specifically for Prism Launcher
+set(Launcher_CURSEFORGE_API_KEY "$2a$10$wuAJuNZuted3NORVmpgUC.m8sI.pv1tOPKZyBgLFGjxFp/br0lZCC" CACHE STRING "API key for the CurseForge platform")
+
+set(Launcher_COMPILER_NAME ${CMAKE_CXX_COMPILER_ID})
+set(Launcher_COMPILER_VERSION ${CMAKE_CXX_COMPILER_VERSION})
+set(Launcher_COMPILER_TARGET_SYSTEM ${CMAKE_SYSTEM_NAME})
+set(Launcher_COMPILER_TARGET_SYSTEM_VERSION ${CMAKE_SYSTEM_VERSION})
+set(Launcher_COMPILER_TARGET_PROCESSOR ${CMAKE_SYSTEM_PROCESSOR})
+
+#### Check the current Git commit and branch
+include(GetGitRevisionDescription)
+git_get_exact_tag(Launcher_GIT_TAG)
+get_git_head_revision(Launcher_GIT_REFSPEC Launcher_GIT_COMMIT)
+
+message(STATUS "Git commit: ${Launcher_GIT_COMMIT}")
+message(STATUS "Git tag: ${Launcher_GIT_TAG}")
+message(STATUS "Git refspec: ${Launcher_GIT_REFSPEC}")
+
+string(TIMESTAMP TODAY "%Y-%m-%d")
+set(Launcher_BUILD_TIMESTAMP "${TODAY}")
+
+################################ 3rd Party Libs ################################
+
+# Find the required Qt parts
+if(Launcher_QT_VERSION_MAJOR EQUAL 6)
+    set(QT_VERSION_MAJOR 6)
+    find_package(Qt6 6.8 REQUIRED COMPONENTS Core CoreTools Widgets Concurrent Network Xml NetworkAuth OpenGL)
+else()
+    message(FATAL_ERROR "Qt version ${Launcher_QT_VERSION_MAJOR} is not supported")
+endif()
+
+if(Launcher_QT_VERSION_MAJOR EQUAL 6)
+    set(QT_PLUGINS_DIR  ${QT${QT_VERSION_MAJOR}_INSTALL_PREFIX}/${QT${QT_VERSION_MAJOR}_INSTALL_PLUGINS})
+    set(QT_LIBS_DIR     ${QT${QT_VERSION_MAJOR}_INSTALL_PREFIX}/${QT${QT_VERSION_MAJOR}_INSTALL_LIBS})
+    set(QT_LIBEXECS_DIR ${QT${QT_VERSION_MAJOR}_INSTALL_PREFIX}/${QT${QT_VERSION_MAJOR}_INSTALL_LIBEXECS})
+endif()
+
+find_package(cmark REQUIRED)
+
+# Find libqrencode
+## NOTE(@getchoo): Never use pkg-config with MSVC since the vcpkg port makes our install bundle fail to find the dll
+if(MSVC)
+    find_path(LIBQRENCODE_INCLUDE_DIR qrencode.h REQUIRED)
+    find_library(LIBQRENCODE_LIBRARY_RELEASE qrencode REQUIRED)
+    find_library(LIBQRENCODE_LIBRARY_DEBUG qrencoded)
+    set(LIBQRENCODE_LIBRARIES optimized ${LIBQRENCODE_LIBRARY_RELEASE} debug ${LIBQRENCODE_LIBRARY_DEBUG})
+else()
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(libqrencode REQUIRED IMPORTED_TARGET libqrencode)
+endif()
+
+# Find libarchive through CMake packages, mainly for vcpkg
+find_package(LibArchive)
+# CMake packages aren't available in most distributions of libarchive, so fallback to pkg-config
+if(NOT LibArchive_FOUND)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(libarchive REQUIRED IMPORTED_TARGET libarchive)
+endif()
+
+find_package(tomlplusplus 3.2.0)
+# fallback to pkgconfig, important especially as many distros package toml++ built with meson
+if(NOT tomlplusplus_FOUND)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(tomlplusplus REQUIRED IMPORTED_TARGET tomlplusplus>=3.2.0)
+endif()
+
+find_package(ZLIB REQUIRED)
+
+include(ECMQtDeclareLoggingCategory)
+
+####################################### Program Info #######################################
+
+set(Launcher_APP_BINARY_NAME "elyprismlauncher" CACHE STRING "Name of the Launcher binary")
+add_subdirectory(program_info)
+
+####################################### Install layout #######################################
+
+set(Launcher_ENABLE_UPDATER NO)
+set(Launcher_BUILD_UPDATER NO)
+
+if (NOT Launcher_UPDATER_GITHUB_REPO STREQUAL "" AND NOT Launcher_BUILD_ARTIFACT STREQUAL "")
+    set(Launcher_BUILD_UPDATER YES)
+endif()
+    # Install "portable.txt" if selected component is "portable"
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/${Launcher_Portable_File}" DESTINATION "." COMPONENT portable EXCLUDE_FROM_ALL)
+
+if(WIN32)
+    set(BINARY_DEST_DIR ".")
+    set(LIBRARY_DEST_DIR ".")
+    set(PLUGIN_DEST_DIR ".")
+    set(RESOURCES_DEST_DIR ".")
+    set(JARS_DEST_DIR "jars")
+else()
+    message(FATAL_ERROR "Platform not supported")
+endif()
+
+################################ Included Libs ################################
+
+include(ExternalProject)
+set_directory_properties(PROPERTIES EP_BASE External)
+
+option(NBT_BUILD_SHARED "Build NBT shared library" OFF)
+option(NBT_USE_ZLIB "Build NBT library with zlib support" OFF)
+option(NBT_BUILD_TESTS "Build NBT library tests" OFF) #FIXME: fix unit tests.
+add_subdirectory(libraries/libnbtplusplus)
+
+add_subdirectory(libraries/launcher) # java based launcher part for Minecraft
+add_subdirectory(libraries/javacheck) # java compatibility checker
+
+add_subdirectory(libraries/rainbow) # Qt extension for colors
+add_subdirectory(libraries/LocalPeer) # fork of a library from Qt solutions
+add_subdirectory(libraries/murmur2) # Hash for usage with the CurseForge API
+add_subdirectory(libraries/qdcss) # css parser
+
+############################### Built Artifacts ###############################
+
+add_subdirectory(buildconfig)
+
+# NOTE: this must always be last to appease the CMake deity of quirky install command evaluation order.
+add_subdirectory(launcher)
+
+include(cmake/Installer.cmake)

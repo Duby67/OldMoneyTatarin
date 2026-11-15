@@ -1,0 +1,51 @@
+{
+    "$schema": "https://cmake.org/cmake/help/latest/_downloads/3e2d73bff478d88a7de0de736ba5e361/schema.json",
+    "version": 8,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 28
+    },
+    "configurePresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/dist/build/${presetName}",
+            "installDir": "${sourceDir}/dist/app/${presetName}",
+            "generator": "Ninja Multi-Config",
+            "cacheVariables": {
+                "Launcher_BUILD_ARTIFACT": "",
+                "Launcher_BUILD_PLATFORM": "OldMoneyTatarin",
+                "Launcher_ENABLE_JAVA_DOWNLOADER": "ON",
+                "ENABLE_LTO": "ON"
+            }
+        },
+        {
+            "name": "windows_msvc",
+            "displayName": "Windows (MSVC)",
+            "inherits": [
+                "base"
+            ],
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            },
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "$penv{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "windows_msvc",
+            "displayName": "Windows (MSVC)",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            },
+            "configurePreset": "windows_msvc",
+            "configuration": "Release"
+        }
+    ]
+}

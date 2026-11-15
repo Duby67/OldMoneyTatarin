@@ -1,0 +1,12 @@
+cmake_minimum_required(VERSION 3.28)
+project(LauncherUpdateChecks LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_AUTOMOC ON)
+find_package(Qt6 REQUIRED COMPONENTS Core Network)
+add_executable(update-check main.cpp ../../launcher/updater/ReleaseInfo.cpp
+    ../../launcher/updater/ReleaseQuery.cpp ../../launcher/updater/ReleaseQuery.h)
+target_include_directories(update-check PRIVATE ../../launcher)
+target_link_libraries(update-check PRIVATE Qt6::Core Qt6::Network)
+if(MSVC)
+    target_compile_options(update-check PRIVATE /utf-8 /W4 /WX)
+endif()
