@@ -25,6 +25,20 @@ EXCLUDED_PARTS = {
     "logs", "cache", ".cache", "local", "saves", "screenshots", "xaero",
     "e4mc", "spark", "crash_assistant", "backups", "session", "sessions",
 }
+CLIENT_CONFIG_DIRS = {"jade", "jei", "justzoom", "lighty", "mezz_config", "pickupnotifier", "quark_emotes", "rollingtones", "xaero"}
+
+
+def file_policy(relative, default):
+    """Явные клиентские пресеты не должны затирать настройки игрока при синхронизации."""
+    parts = [part.lower() for part in relative.parts]
+    if parts and parts[0] == "config" and (
+        (len(parts) > 2 and parts[1] in CLIENT_CONFIG_DIRS)
+        or re.search(r"(?:[-_.]client(?:config)?|clientconfig)\.(?:toml|json|json5|cfg|properties)$", parts[-1])
+    ):
+        return "seed"
+    return default
+
+
 SECRET = re.compile(
     r'(?im)["\']?(?:access[_-]?token|refresh[_-]?token|password|passwd|secret|api[_-]?key|authorization|cookie)["\']?\s*[:=]\s*["\']?([^\s"\',}\]]+)'
 )
@@ -44,7 +58,9 @@ def excluded(path):
     )
 
 
-def make_snapshot(source, destination, minecraft, neoforge):
+def make_snapshot(source, destination, minecraft, neoforge, min_memory_mib=8192, max_memory_mib=8192):
+    if not 256 <= min_memory_mib <= max_memory_mib <= 262144:
+        raise ValueError("Некорректный диапазон памяти Java")
     source, destination = source.resolve(), destination.resolve()
     if destination == source or source in destination.parents or destination in source.parents:
         raise ValueError("Источник и снимок должны находиться в независимых каталогах")
@@ -86,9 +102,10 @@ def make_snapshot(source, destination, minecraft, neoforge):
                     target.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copyfile(path, target)
                     files.append({"path": relative.as_posix(), "size": target.stat().st_size,
-                                  "sha256": digest(target), "policy": mode})
+                                  "sha256": digest(target), "policy": file_policy(relative, mode)})
         manifest = {"schema": 1, "id": "regionalworlds", "name": "RegionalWorlds",
                     "minecraft": minecraft, "neoforge": neoforge,
+                    "memory": {"minMiB": min_memory_mib, "maxMiB": max_memory_mib, "systemReserveMiB": 2048},
                     "files": sorted(files, key=lambda item: item["path"])}
         (destination / "snapshot.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
     except Exception:
@@ -104,5 +121,7 @@ if __name__ == "__main__":
     parser.add_argument("destination", type=Path)
     parser.add_argument("--minecraft", required=True)
     parser.add_argument("--neoforge", required=True)
+    parser.add_argument("--min-memory-mib", type=int, default=8192)
+    parser.add_argument("--max-memory-mib", type=int, default=8192)
     args = parser.parse_args()
-    make_snapshot(args.source, args.destination, args.minecraft, args.neoforge)
+    make_snapshot(args.source, args.destination, args.minecraft, args.neoforge, args.min_memory_mib, args.max_memory_mib)

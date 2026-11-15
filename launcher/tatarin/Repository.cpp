@@ -1,4 +1,5 @@
 #include "Repository.h"
+#include "MemoryPolicy.h"
 
 #include <QCryptographicHash>
 #include <QDir>
@@ -175,6 +176,7 @@ QString checkedPath(const QString& root, const QString& relative)
 
 void validateManifest(const QJsonObject& value)
 {
+    memoryRequirements(value);
     const QRegularExpression version("^[0-9]+(?:\\.[0-9]+){1,3}$");
     if (value["schema"].toInt() != 1 || !identifier(value["id"].toString()) || !identifier(value["release"].toString()) ||
         value["name"].toString().isEmpty() || !version.match(value["minecraft"].toString()).hasMatch() ||

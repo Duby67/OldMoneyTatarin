@@ -7,11 +7,17 @@ import tempfile
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts/tatarin"))
-from snapshot import make_snapshot
+from snapshot import make_snapshot, file_policy
 from publish import publish
 
 
 class ToolsTest(unittest.TestCase):
+    def test_client_policy(self):
+        self.assertEqual(file_policy(Path("config/example-client.toml"), "managed"), "seed")
+        self.assertEqual(file_policy(Path("config/jei/bookmarks.ini"), "managed"), "seed")
+        self.assertEqual(file_policy(Path("config/example-common.toml"), "managed"), "managed")
+        self.assertEqual(file_policy(Path("mods/example-client.jar"), "managed"), "managed")
+
     def test_snapshot_and_publication(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -28,6 +34,8 @@ class ToolsTest(unittest.TestCase):
                 file.write_text(content)
             snapshot = root / "snapshot"
             value = make_snapshot(source, snapshot, "1.21.1", "21.1.264")
+            self.assertEqual(value["memory"]["minMiB"], 8192)
+            self.assertEqual(value["memory"]["maxMiB"], 8192)
             self.assertEqual({f["path"] for f in value["files"]}, {
                 "mods/a.jar", "config/common.toml", "configureddefaults/config/client.toml"})
             self.assertEqual((source / "saves/world.txt").read_text(), "world")

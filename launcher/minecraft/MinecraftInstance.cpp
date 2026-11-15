@@ -71,6 +71,7 @@
 
 #include "minecraft/update/AssetUpdateTask.h"
 #include "tatarin/SyncTask.h"
+#include "tatarin/ClientDataRecoveryTask.h"
 #include "minecraft/update/ElyPatchTask.h"
 #include "minecraft/update/FoldersTask.h"
 #include "minecraft/update/LegacyFMLLibrariesTask.h"
@@ -1118,6 +1119,7 @@ LaunchTask* MinecraftInstance::createLaunchTask(AuthSessionPtr session, Minecraf
     updateRuntimeContext();
     auto process = LaunchTask::create(this);
     auto pptr = process.get();
+    process->appendStep(makeShared<TaskStepWrapper>(pptr, makeShared<ClientDataRecoveryTask>(this)));
 
     // TATARIN может менять версии Minecraft/NeoForge: синхронизация до metadata и Java.
     if (isManagedPack() && getManagedPackType() == "tatarin") {

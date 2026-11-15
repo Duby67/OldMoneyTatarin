@@ -1,5 +1,6 @@
 #include "PackPage.h"
 #include "Repository.h"
+#include "MemoryPolicy.h"
 #include "BaseInstance.h"
 
 #include <QPlainTextEdit>
@@ -22,6 +23,10 @@ void PackPage::openedImpl()
         const auto extras = additionalMods(m_instance->gameRoot(), value);
         QString text = QStringLiteral("%1\nУстановленный выпуск: %2\nMinecraft: %3\nNeoForge: %4\n\n")
                            .arg(value["name"].toString(), value["release"].toString(), value["minecraft"].toString(), value["neoforge"].toString());
+        if (const auto memory = memoryRequirements(value))
+            text += QStringLiteral("Память Java задаётся сборкой: минимум %1 МиБ, максимум %2 МиБ.\n"
+                                   "Для системы дополнительно предусмотрено %3 МиБ.\n\n")
+                        .arg(memory->minimumMiB).arg(memory->maximumMiB).arg(memory->systemReserveMiB);
         text += QStringLiteral("Перед запуском проверяются обновления и целостность управляемых файлов.\n"
                                "Обязательные конфиги заменяются с резервной копией. Стартовые файлы выдаются один раз.\n"
                                "Миры, настройки управления и личные файлы сохраняются. Дополнительные моды не удаляются.\n"

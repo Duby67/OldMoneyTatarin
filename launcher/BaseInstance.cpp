@@ -133,6 +133,11 @@ BaseInstance::BaseInstance(SettingsObject* globalSettings, std::unique_ptr<Setti
     m_settings->registerSetting("ManagedPackVersionID", "");
     m_settings->registerSetting("ManagedPackVersionName", "");
     m_settings->registerSetting("ManagedPackURL", "");
+    m_settings->registerSetting("TatarinMemoryManaged", false);
+    m_settings->registerSetting("TatarinMinMemory", 0);
+    m_settings->registerSetting("TatarinMaxMemory", 0);
+    m_settings->registerSetting("TatarinSystemReserve", 2048);
+    m_settings->registerSetting("TatarinMemoryBackup", "");
 
 }
 

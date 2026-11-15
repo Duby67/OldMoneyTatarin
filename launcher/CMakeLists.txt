@@ -6,6 +6,15 @@ project(application)
 
 set(CORE_SOURCES
     tatarin/Repository.h
+    tatarin/ClientData.h
+    tatarin/ClientData.cpp
+    tatarin/ClientDataPage.h
+    tatarin/ClientDataPage.cpp
+    tatarin/ClientDataRecoveryTask.h
+    tatarin/ClientDataRecoveryTask.cpp
+    tatarin/MemoryPolicy.h
+    tatarin/MemoryPolicy.cpp
+    tatarin/MemorySettings.cpp
     tatarin/Repository.cpp
     tatarin/Sync.cpp
     tatarin/SyncTask.h

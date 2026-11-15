@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION 3.28)
+project(ClientDataChecks LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
+find_package(Qt6 REQUIRED COMPONENTS Core Network)
+add_executable(client-data-check main.cpp ../../launcher/tatarin/ClientData.cpp
+    ../../launcher/tatarin/Repository.cpp ../../launcher/tatarin/MemoryPolicy.cpp)
+target_include_directories(client-data-check PRIVATE ../../launcher)
+target_link_libraries(client-data-check PRIVATE Qt6::Core Qt6::Network)
+if(MSVC)
+    target_compile_options(client-data-check PRIVATE /utf-8 /W4 /WX)
+endif()
