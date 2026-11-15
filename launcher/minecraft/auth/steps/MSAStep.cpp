@@ -118,16 +118,15 @@ MSAStep::MSAStep(AccountData* data, bool silent, QString clientId, QString scope
 
     {
         auto replyHandler = new LoggingOAuthHttpServerReplyHandler(this);
-        replyHandler->setCallbackText(QString(R"XXX(
-    <noscript>
-      <meta http-equiv="Refresh" content="0; URL=%1" />
-    </noscript>
-    Login Successful, redirecting...
-    <script>
-      window.location.replace("%1");
-    </script>
-    )XXX")
-                                          .arg(BuildConfig.LOGIN_CALLBACK_URL));
+        replyHandler->setCallbackText(QStringLiteral(R"HTML(
+    <!doctype html>
+    <html lang="ru"><head><meta charset="utf-8">
+    <title>OldMoneyTatarin — вход</title></head>
+    <body><h1>Ответ авторизации получен</h1>
+    <p>Вернитесь в OldMoneyTatarin для завершения входа. Эту вкладку можно закрыть.</p>
+    <script>history.replaceState(null, "", location.pathname);</script>
+    </body></html>
+    )HTML"));
         m_oauth2.setReplyHandler(replyHandler);
     } else {
         m_oauth2.setReplyHandler(new CustomOAuthOobReplyHandler(this));

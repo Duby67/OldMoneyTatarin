@@ -5,6 +5,7 @@
 #include "ui/dialogs/NewInstanceDialog.h"
 
 #include <QLabel>
+#include <QDir>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
@@ -15,6 +16,18 @@ CatalogPage::CatalogPage(NewInstanceDialog* dialog) : m_dialog(dialog)
 {
     auto* layout = new QVBoxLayout(this);
     layout->addWidget(new QLabel(QStringLiteral("Локальный каталог сборок TATARIN"), this));
+    m_directory = new QLabel(this);
+    m_directory->setTextFormat(Qt::PlainText);
+    m_directory->setWordWrap(true);
+    m_directory->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    layout->addWidget(m_directory);
+    auto* directoryButton = new QPushButton(QStringLiteral("Настроить папку сборок…"), this);
+    layout->addWidget(directoryButton);
+    connect(directoryButton, &QPushButton::clicked, this, [this] {
+        APPLICATION->ShowGlobalSettings(m_dialog, "launcher-settings");
+        m_directory->setText(QStringLiteral("Папка сборок: %1\nДля каждой сборки здесь создаётся отдельный каталог.")
+                                 .arg(QDir::toNativeSeparators(QDir(APPLICATION->settings()->get("InstanceDir").toString()).absolutePath())));
+    });
     m_source = new QLineEdit(APPLICATION->settings()->get("TatarinDevSource").toString(), this);
     layout->addWidget(m_source);
     auto* refreshButton = new QPushButton(QStringLiteral("Обновить каталог"), this);
@@ -37,6 +50,8 @@ CatalogPage::CatalogPage(NewInstanceDialog* dialog) : m_dialog(dialog)
 
 void CatalogPage::openedImpl()
 {
+    m_directory->setText(QStringLiteral("Папка сборок: %1\nДля каждой сборки здесь создаётся отдельный каталог.")
+                             .arg(QDir::toNativeSeparators(QDir(APPLICATION->settings()->get("InstanceDir").toString()).absolutePath())));
     if (m_packs.isEmpty())
         refresh();
     else

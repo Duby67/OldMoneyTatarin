@@ -881,9 +881,16 @@ void InstanceList::on_InstFolderChanged([[maybe_unused]] const Setting& setting,
         }
         m_instDir = newInstDir;
         m_groupsLoaded = false;
-        beginRemoveRows(QModelIndex(), 0, count());
-        m_instances.erase(m_instances.begin(), m_instances.end());
-        endRemoveRows();
+        if (count() > 0) {
+            beginRemoveRows(QModelIndex(), 0, count() - 1);
+            m_instances.clear();
+            endRemoveRows();
+        }
+        const auto watched = m_watcher->directories();
+        if (!watched.isEmpty())
+            m_watcher->removePaths(watched);
+        if (!m_instDir.isEmpty())
+            m_watcher->addPath(m_instDir);
         emit instancesChanged();
     }
 }

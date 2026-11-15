@@ -25,6 +25,7 @@ private:
     QLineEdit* m_source;
     QListWidget* m_list;
     QLabel* m_status;
+    QLabel* m_directory;
     QJsonArray m_packs;
 };
 }

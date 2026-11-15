@@ -68,6 +68,7 @@
 #include "ui/setupwizard/AutoJavaWizardPage.h"
 #include "ui/setupwizard/JavaWizardPage.h"
 #include "ui/setupwizard/LanguageWizardPage.h"
+#include "ui/setupwizard/InstanceDirWizardPage.h"
 #include "ui/setupwizard/LoginWizardPage.h"
 #include "ui/setupwizard/SetupWizard.h"
 #include "ui/setupwizard/ThemeWizardPage.h"
@@ -391,7 +392,7 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
         if (DesktopServices::isSnap()) {
             foo = QDir(qEnvironmentVariable("SNAP_USER_COMMON"));
         } else {
-            foo = QDir(FS::PathCombine(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation), ".."));
+            foo = QDir(FS::PathCombine(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation), "../../OldMoneyTatarin"));
         }
 
         dataPath = foo.absolutePath();
@@ -575,6 +576,12 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
     {
         bool migrated = false;
 
+        if (!m_portable && dirParam.isEmpty() && dataDirEnv.isEmpty()) {
+            migrated = handleDataMigration(dataPath,
+                QDir(FS::PathCombine(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation), "..")).absolutePath(),
+                "ElyPrismLauncher", BuildConfig.LAUNCHER_CONFIGFILE);
+        }
+
         if (!migrated)
             migrated = handleDataMigration(
                 dataPath, FS::PathCombine(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation), "../../PolyMC"), "PolyMC",
@@ -687,6 +694,7 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
 
         // Folders
         m_settings->registerSetting("InstanceDir", "instances");
+        m_settings->registerSetting("InstanceDirConfigured", false);
         m_settings->registerSetting({ "CentralModsDir", "ModsDir" }, "mods");
         m_settings->registerSetting("IconsDir", "icons");
         m_settings->registerSetting("DownloadsDir", QStandardPaths::writableLocation(QStandardPaths::DownloadLocation));
@@ -1200,7 +1208,8 @@ bool Application::createSetupWizard()
     bool validIcons = m_themeManager->isValidIconTheme(settings()->get("IconTheme").toString());
     bool login = !m_accounts->anyAccountIsValid() && capabilities() & Application::SupportsMSA;
     bool themeInterventionRequired = !validWidgets || !validIcons;
-    bool wizardRequired = javaRequired || languageRequired || themeInterventionRequired || askjava || login;
+    bool instanceDirRequired = !settings()->get("InstanceDirConfigured").toBool();
+    bool wizardRequired = javaRequired || languageRequired || themeInterventionRequired || askjava || login || instanceDirRequired;
     if (wizardRequired) {
         // set default theme after going into theme wizard
         if (!validIcons)
@@ -1221,6 +1230,9 @@ bool Application::createSetupWizard()
         m_setupWizard = new SetupWizard(nullptr);
         if (languageRequired) {
             m_setupWizard->addPage(new LanguageWizardPage(m_setupWizard));
+        }
+        if (instanceDirRequired) {
+            m_setupWizard->addPage(new InstanceDirWizardPage(m_setupWizard));
         }
 
         if (javaRequired) {
@@ -1948,6 +1960,10 @@ bool Application::handleDataMigration(const QString& currentData,
         using namespace Filters;
 
         QList<Filter> filters;
+        // Наш прежний профиль переносим целиком, включая пользовательские относительные папки.
+        // Исходная папка остаётся резервной копией; автоматического удаления нет.
+        if (name == "ElyPrismLauncher")
+            filters.append(startsWith(""));
         filters.append(equals(configFile));
         filters.append(equals(BuildConfig.LAUNCHER_CONFIGFILE));  // it's possible that we already used that directory before
         filters.append(startsWith("logs/"));

@@ -837,6 +837,8 @@ SET(LAUNCHER_SOURCES
     ui/setupwizard/JavaWizardPage.h
     ui/setupwizard/LanguageWizardPage.cpp
     ui/setupwizard/LanguageWizardPage.h
+    ui/setupwizard/InstanceDirWizardPage.h
+    ui/setupwizard/InstanceDirWizardPage.cpp
     ui/setupwizard/ThemeWizardPage.h
     ui/setupwizard/AutoJavaWizardPage.cpp
     ui/setupwizard/AutoJavaWizardPage.h
