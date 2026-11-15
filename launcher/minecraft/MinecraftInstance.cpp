@@ -1121,7 +1121,12 @@ LaunchTask* MinecraftInstance::createLaunchTask(AuthSessionPtr session, Minecraf
 
     // TATARIN может менять версии Minecraft/NeoForge: синхронизация до metadata и Java.
     if (isManagedPack() && getManagedPackType() == "tatarin") {
-        process->appendStep(makeShared<TaskStepWrapper>(pptr, makeShared<Tatarin::SyncTask>(this)));
+        auto sync = makeShared<Tatarin::SyncTask>(this);
+        auto step = makeShared<TaskStepWrapper>(pptr, sync);
+        connect(sync.get(), &Task::warningLogged, step.get(), [stepPtr = step.get()](const QString& message) {
+            emit stepPtr->logLine(message, MessageLevel::Warning);
+        });
+        process->appendStep(step);
     }
 
     APPLICATION->icons()->saveIcon(iconKey(), FS::PathCombine(gameRoot(), "icon.png"), "PNG");

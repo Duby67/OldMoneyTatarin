@@ -200,6 +200,16 @@ void validateManifest(const QJsonObject& value)
             fail(QStringLiteral("Слишком большой выпуск TATARIN"));
         paths.insert(path.toCaseFolded());
     }
+    if (value.contains("initializedSeeds")) {
+        if (!value["initializedSeeds"].isArray() || value["initializedSeeds"].toArray().size() > 50000)
+            fail(QStringLiteral("Повреждён реестр стартовых файлов TATARIN"));
+        for (const auto& item : value["initializedSeeds"].toArray()) {
+            const auto path = item.toString();
+            checkedPath(QDir::tempPath() + "/tatarin-validation", path);
+            if (!roots.contains(path.section('/', 0, 0)) || !path.contains('/'))
+                fail(QStringLiteral("Повреждён реестр стартовых файлов TATARIN"));
+        }
+    }
     for (const auto& path : paths) {
         auto prefix = path.section('/', 0, -2);
         while (!prefix.isEmpty()) {
@@ -226,7 +236,7 @@ QString fileHash(const QString& path)
 QJsonObject readJson(const QString& path)
 {
     QFile file(path);
-    if (!file.open(QIODevice::ReadOnly) || file.size() > 16 * 1024 * 1024)
+    if (!file.open(QIODevice::ReadOnly) || file.size() > 64 * 1024 * 1024)
         fail(QStringLiteral("Не удалось прочитать состояние TATARIN"));
     return parse(file.readAll());
 }
@@ -237,6 +247,8 @@ void writeJson(const QString& path, const QJsonObject& value)
         fail(QStringLiteral("Не удалось создать папку состояния TATARIN"));
     QSaveFile file(path);
     auto bytes = QJsonDocument(value).toJson();
+    if (bytes.size() > 64 * 1024 * 1024)
+        fail(QStringLiteral("Слишком большой документ состояния TATARIN"));
     if (!file.open(QIODevice::WriteOnly) || file.write(bytes) != bytes.size() || !file.commit())
         fail(QStringLiteral("Не удалось сохранить состояние TATARIN"));
 }

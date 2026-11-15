@@ -148,9 +148,16 @@ QJsonObject synchronize(QNetworkAccessManager* network, const QUrl& source, cons
     }
     if (pack.isEmpty())
         fail(QStringLiteral("Сборка отсутствует в каталоге TATARIN"));
-    const auto after = manifest(network, source, pack, cancel);
+    auto after = manifest(network, source, pack, cancel);
     const auto oldFiles = fileMap(before);
     const auto newFiles = fileMap(after);
+    QSet<QString> initializedSeeds;
+    for (const auto& item : before["initializedSeeds"].toArray())
+        initializedSeeds.insert(item.toString());
+    for (auto it = oldFiles.cbegin(); it != oldFiles.cend(); ++it) {
+        if (it.value()["policy"].toString() == "seed")
+            initializedSeeds.insert(it.key());
+    }
     const auto transaction = QUuid::createUuid().toString(QUuid::WithoutBraces);
     QJsonArray operations;
     qint64 done = 0;
@@ -182,7 +189,14 @@ QJsonObject synchronize(QNetworkAccessManager* network, const QUrl& source, cons
         const auto path = it.value()["path"].toString();
         if (oldFiles.contains(it.key()) && oldFiles[it.key()]["path"].toString() != path)
             fail(QStringLiteral("Изменение только регистра пути не поддерживается"));
-        prepare(path, it.value());
+        if (it.value()["policy"].toString() == "seed") {
+            // Отсутствие уже выданного seed тоже может быть выбором пользователя.
+            if (!initializedSeeds.contains(it.key()) && !QFileInfo::exists(checkedPath(gameRoot, path)))
+                prepare(path, it.value());
+            initializedSeeds.insert(it.key());
+        } else {
+            prepare(path, it.value());
+        }
         if (progress)
             progress(++done, newFiles.size() + oldFiles.size());
         QCoreApplication::processEvents();
@@ -195,6 +209,13 @@ QJsonObject synchronize(QNetworkAccessManager* network, const QUrl& source, cons
     }
     if (cancel && cancel())
         fail(QStringLiteral("Операция отменена"));
+    QJsonArray seeds;
+    auto sortedSeeds = initializedSeeds.values();
+    sortedSeeds.sort();
+    for (const auto& path : sortedSeeds)
+        seeds.append(path);
+    after["initializedSeeds"] = seeds;
+    validateManifest(after);
     if (applying)
         applying(true);
     if (operations.isEmpty()) {
@@ -224,5 +245,32 @@ QJsonObject synchronize(QNetworkAccessManager* network, const QUrl& source, cons
         throw;
     }
     return after;
+}
+
+QStringList additionalMods(const QString& gameRoot, const QJsonObject& value)
+{
+    const auto files = fileMap(value);
+    QStringList extras;
+    QStringList pending = {"mods"};
+    while (!pending.isEmpty()) {
+        const auto relative = pending.takeLast();
+        // Проверяет reparse points во всех родителях до обхода каталога.
+        checkedPath(gameRoot, relative + "/tatarin-probe");
+        const QDir directory(QDir(gameRoot).filePath(relative));
+        for (const auto& info : directory.entryInfoList(QDir::Files | QDir::Dirs | QDir::Hidden | QDir::NoDotAndDotDot)) {
+            const auto path = relative + "/" + info.fileName();
+            if (info.isDir()) {
+                pending.append(path);
+                continue;
+            }
+            checkedPath(gameRoot, path);
+            const auto lower = path.toCaseFolded();
+            if (!files.contains(lower) && (lower.endsWith(".jar") || lower.endsWith(".zip") ||
+                                          lower.endsWith(".litemod") || lower.endsWith(".disabled")))
+                extras.append(path);
+        }
+    }
+    extras.sort();
+    return extras;
 }
 }  // namespace Tatarin

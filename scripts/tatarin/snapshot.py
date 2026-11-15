@@ -60,6 +60,9 @@ def make_snapshot(source, destination, minecraft, neoforge):
             folder = source / root
             if not folder.exists():
                 continue
+            if folder.is_symlink() or folder.is_junction():
+                omitted += 1
+                continue
             for current, dirs, names in os.walk(folder, followlinks=False):
                 current = Path(current)
                 for directory in list(dirs):

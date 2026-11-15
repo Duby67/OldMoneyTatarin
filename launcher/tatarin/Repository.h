@@ -31,4 +31,5 @@ QJsonObject synchronize(QNetworkAccessManager* network, const QUrl& source, cons
                         const QString& instanceRoot, const QString& gameRoot, Cancel cancel, Progress progress,
                         std::function<void(bool)> applying = {});
 QJsonObject verifiedInstalled(const QString& instanceRoot, const QString& gameRoot, const QString& packId);
+QStringList additionalMods(const QString& gameRoot, const QJsonObject& value);
 }  // namespace Tatarin

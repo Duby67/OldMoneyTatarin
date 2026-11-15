@@ -47,14 +47,14 @@ def main(executable):
             result = subprocess.run([executable, url, str(instance), mode], capture_output=True, text=True, encoding="utf-8")
             assert (result.returncode == 0) == success, (mode, result.stdout, result.stderr)
 
-        def release(name, contents):
+        def release(name, contents, policies=None):
             files = []
             for path, data in contents.items():
                 data = data.encode()
                 obj = server_root / "objects" / sha(data)
                 obj.parent.mkdir(exist_ok=True)
                 obj.write_bytes(data)
-                files.append({"path": path, "size": len(data), "sha256": sha(data), "policy": "managed"})
+                files.append({"path": path, "size": len(data), "sha256": sha(data), "policy": (policies or {}).get(path, "managed")})
             value = {"schema": 1, "id": "regionalworlds", "name": "Test", "release": name,
                      "minecraft": "1.21.1", "neoforge": "21.1.264", "files": files}
             publish(value)
@@ -140,7 +140,45 @@ def main(executable):
             (server_root / "v1/catalog.json").unlink()
             run("sync", False)
             run("verify")
+            # Стартовые настройки: изменения и удаления пользователя переживают выпуски.
+            seeded = {"config/client.toml": "seed", "config/deleted.toml": "seed"}
+            release("seed-1", {"mods/a.jar": "new-a", "config/main.toml": "new-config",
+                               "config/client.toml": "initial", "config/deleted.toml": "initial"}, seeded)
+            run("sync")
+            (game / "config/client.toml").write_text("user-settings")
+            (game / "config/deleted.toml").unlink()
+            (game / "config/main.toml").write_text("user-mandatory-config")
+            release("seed-2", {"mods/a.jar": "new-a", "config/main.toml": "mandatory-update",
+                               "config/client.toml": "changed-default", "config/deleted.toml": "changed-default"}, seeded)
+            run("sync")
+            assert (game / "config/client.toml").read_text() == "user-settings"
+            assert not (game / "config/deleted.toml").exists()
+            assert (game / "config/main.toml").read_text() == "mandatory-update"
+            assert any(p.read_text() == "user-mandatory-config" for p in (instance / "tatarin/backups").glob("*/config/main.toml"))
+            release("seed-3", {"mods/a.jar": "new-a", "config/main.toml": "mandatory-update"})
+            run("sync")
+            assert (game / "config/client.toml").read_text() == "user-settings"
+            release("seed-4", {"mods/a.jar": "new-a", "config/main.toml": "mandatory-update", "config/deleted.toml": "reintroduced"}, seeded)
+            run("sync")
+            assert not (game / "config/deleted.toml").exists()
+            assert (game / "mods/user.jar").read_text() == "user-mod"
+            extras = subprocess.run([executable, url, str(instance), "extras"], capture_output=True, text=True, encoding="utf-8", check=True)
+            assert "mods/user.jar" in extras.stdout and "mods/a.jar" not in extras.stdout
+            # Windows junction не должен позволять изменение файлов вне экземпляра.
+            if sys.platform == "win32":
+                outside = root / "outside"
+                outside.mkdir()
+                junction = game / "config/linked"
+                result = subprocess.run(["cmd", "/c", "mklink", "/J", str(junction), str(outside)], capture_output=True)
+                assert result.returncode == 0
+                try:
+                    release("junction", {"config/linked/escape.toml": "escape"})
+                    run("sync", False)
+                    assert not (outside / "escape.toml").exists()
+                finally:
+                    junction.rmdir()
             print("PASS: HTTP install/update/repair, no redundant downloads, cancel, corrupt object, recovery, unsafe paths, offline integrity")
+            print("PASS: seed edits/deletions/reintroduction, mandatory config backup, additional mods, junction containment")
         finally:
             server.shutdown()
             server.server_close()

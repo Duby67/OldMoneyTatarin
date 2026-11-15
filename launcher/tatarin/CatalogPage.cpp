@@ -68,8 +68,12 @@ void CatalogPage::refresh()
 void CatalogPage::select()
 {
     const auto row = m_list->currentRow();
-    if (!isOpened || row < 0 || row >= m_packs.size())
+    if (!isOpened)
         return;
+    if (row < 0 || row >= m_packs.size()) {
+        m_dialog->setSuggestedPack();
+        return;
+    }
     auto pack = m_packs[row].toObject();
     m_status->setText(pack["description"].toString());
     m_dialog->setSuggestedPack(pack["name"].toString(), new CreationTask(sourceUrl(m_source->text()), pack));

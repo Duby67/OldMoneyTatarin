@@ -1,7 +1,6 @@
 """Опубликовать локальный снимок как неизменяемый выпуск TATARIN."""
 
 import argparse
-import hashlib
 import json
 import re
 import shutil
@@ -28,6 +27,8 @@ def publish(snapshot, root, release, notes):
     if target.exists():
         raise ValueError("Выпуск уже существует; используйте новый ID")
     for entry in manifest["files"]:
+        if not re.fullmatch(r"[0-9a-f]{64}", entry["sha256"]):
+            raise ValueError("Недопустимый SHA-256 в снимке")
         path = PurePosixPath(entry["path"])
         if path.is_absolute() or ".." in path.parts or "\\" in entry["path"] or ":" in entry["path"]:
             raise ValueError("Недопустимый путь в снимке")

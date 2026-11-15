@@ -3,7 +3,10 @@
 #include "Application.h"
 #include "minecraft/MinecraftInstance.h"
 #include "minecraft/PackProfile.h"
+#include "minecraft/Component.h"
 
+#include <QEventLoop>
+#include <QJsonArray>
 #include <QMessageBox>
 
 namespace Tatarin {
@@ -44,12 +47,49 @@ void SyncTask::executeTask()
             }
         }
         setAbortable(false);
+        const auto extras = additionalMods(m_instance->gameRoot(), value);
+        if (!extras.isEmpty())
+            logWarning(QStringLiteral("TATARIN: сохранено дополнительных модов: %1. Они могут влиять на совместимость; список доступен на странице TATARIN экземпляра.")
+                           .arg(extras.size()));
         auto* profile = m_instance->getPackProfile();
-        profile->setComponentVersion("net.minecraft", value["minecraft"].toString(), true);
-        profile->setComponentVersion("net.neoforged", value["neoforge"].toString());
+        // Загружаем список компонентов до изменения. Пересчёт здесь только локальный:
+        // setComponentVersion(..., true) немедленно запустил бы Online-resolve
+        // между изменениями Minecraft и NeoForge, в том числе при запуске без источника.
+        if (const auto loaded = profile->reload(Net::Mode::Offline); !loaded)
+            throw std::runtime_error(loaded.error.toUtf8().constData());
+        if (auto task = profile->getCurrentTask(); task && !task->isFinished()) {
+            QEventLoop loop;
+            connect(task.get(), &Task::finished, &loop, &QEventLoop::quit);
+            if (!task->isFinished())
+                loop.exec();
+        }
+        const QMap<QString, QString> versions = {{"net.minecraft", value["minecraft"].toString()},
+                                                 {"net.neoforged", value["neoforge"].toString()}};
+        for (auto it = versions.cbegin(); it != versions.cend(); ++it) {
+            if (profile->getComponentVersion(it.key()) != it.value() && !profile->setComponentVersion(it.key(), it.value()))
+                throw std::runtime_error("Не удалось изменить версию компонента TATARIN");
+            const auto component = profile->getComponent(it.key());
+            if (!component)
+                throw std::runtime_error("Не найден компонент TATARIN");
+            component->setImportant(true);
+            component->setEnabled(true);
+        }
         m_instance->setManagedPack("tatarin", value["id"].toString(), value["name"].toString(),
                                    value["release"].toString(), value["release"].toString());
         m_instance->saveNow();
+        // saveNow() не возвращает ошибку записи; не запускаем игру с прежними версиями.
+        const auto saved = readJson(checkedPath(m_instance->instanceRoot(), "mmc-pack.json"));
+        for (auto it = versions.cbegin(); it != versions.cend(); ++it) {
+            bool found = false;
+            for (const auto& item : saved["components"].toArray()) {
+                const auto component = item.toObject();
+                if (component["uid"].toString() == it.key() && component["version"].toString() == it.value() &&
+                    component["important"].toBool() && !component["disabled"].toBool())
+                    found = true;
+            }
+            if (!found)
+                throw std::runtime_error("Не удалось сохранить версии компонентов TATARIN");
+        }
         m_instance->updateRuntimeContext();
         emitSucceeded();
     } catch (const std::exception& error) {

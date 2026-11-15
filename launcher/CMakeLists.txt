@@ -10,6 +10,8 @@ set(CORE_SOURCES
     tatarin/Sync.cpp
     tatarin/SyncTask.h
     tatarin/SyncTask.cpp
+    tatarin/PackPage.h
+    tatarin/PackPage.cpp
     tatarin/CreationTask.h
     tatarin/CreationTask.cpp
     tatarin/CatalogPage.h

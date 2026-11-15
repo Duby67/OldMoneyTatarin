@@ -31,6 +31,12 @@ int main(int argc, char** argv)
             QTextStream(stdout) << "PASS: verified installed release\n";
             return 0;
         }
+        if (mode == "extras") {
+            const auto value = Tatarin::readJson(args[2] + "/tatarin/installed.json");
+            for (const auto& path : Tatarin::additionalMods(args[2] + "/minecraft", value))
+                QTextStream(stdout) << path << '\n';
+            return 0;
+        }
         const auto packs = Tatarin::catalog(&network, source)["packs"].toArray();
         if (packs.isEmpty())
             throw std::runtime_error("Empty catalog");
