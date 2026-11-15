@@ -145,6 +145,8 @@
 #endif
 #else
 #include "updater/PrismExternalUpdater.h"
+#include "updater/ReleaseChecker.h"
+#include <QStatusBar>
 #endif
 
 #if defined Q_OS_WIN32
@@ -695,6 +697,11 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
         // Folders
         m_settings->registerSetting("InstanceDir", "instances");
         m_settings->registerSetting("InstanceDirConfigured", false);
+        m_settings->registerSetting("LauncherAutoUpdateCheck", true);
+        m_settings->registerSetting("LauncherUpdateInterval", 0);
+        m_settings->registerSetting("LauncherUpdateSource", "");
+        m_settings->registerSetting("LauncherUpdateLastResult", "Проверка ещё не выполнялась.");
+        m_settings->registerSetting("LauncherUpdateLastCheck", "");
         m_settings->registerSetting({ "CentralModsDir", "ModsDir" }, "mods");
         m_settings->registerSetting("IconsDir", "icons");
         m_settings->registerSetting("DownloadsDir", QStandardPaths::writableLocation(QStandardPaths::DownloadLocation));
@@ -1262,7 +1269,7 @@ bool Application::updaterEnabled()
 #if defined(Q_OS_MAC)
     return BuildConfig.UPDATER_ENABLED;
 #else
-    return BuildConfig.UPDATER_ENABLED && QFileInfo(FS::PathCombine(m_rootPath, updaterBinaryName())).isFile();
+    return BuildConfig.UPDATER_ENABLED;
 #endif
 }
 
@@ -1363,7 +1370,12 @@ void Application::performMainStartupAction()
         m_updater.reset(new MacSparkleUpdater());
 #endif
 #else
-        m_updater.reset(new PrismExternalUpdater(m_mainWindow, m_rootPath, m_dataPath));
+        auto* checker = new ReleaseChecker(m_mainWindow);
+        m_updater.reset(checker);
+        connect(checker, &ExternalUpdater::canCheckForUpdatesChanged, m_mainWindow, &MainWindow::updatesAllowedChanged);
+        connect(checker, &ReleaseChecker::checkResult, m_mainWindow, [this](const QString& message) {
+            m_mainWindow->statusBar()->showMessage(message);
+        });
 #endif
         qDebug() << "<> Updater started.";
     }

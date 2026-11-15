@@ -53,6 +53,9 @@
 #include "ui/themes/ITheme.h"
 #include "ui/themes/ThemeManager.h"
 #include "updater/ExternalUpdater.h"
+#include "updater/ReleaseInfo.h"
+#include <QLabel>
+#include <QLineEdit>
 
 #include <QApplication>
 #include <QTextBrowser>
@@ -72,6 +75,17 @@ enum InstSortMode {
 LauncherPage::LauncherPage(QWidget* parent) : QWidget(parent), ui(new Ui::LauncherPage)
 {
     ui->setupUi(this);
+
+    auto* sourceLabel = new QLabel(QStringLiteral("Источник обновлений:"), this);
+    ui->gridLayout_2->addWidget(sourceLabel, 2, 0, 1, 2);
+    m_updateSource = new QLineEdit(this);
+    m_updateSource->setPlaceholderText(QStringLiteral("GitHub Releases (по умолчанию)"));
+    sourceLabel->setBuddy(m_updateSource);
+    ui->gridLayout_2->addWidget(m_updateSource, 3, 0, 1, 2);
+    m_updateResult = new QLabel(this);
+    m_updateResult->setWordWrap(true);
+    m_updateResult->setTextFormat(Qt::PlainText);
+    ui->gridLayout_2->addWidget(m_updateResult, 4, 0, 1, 2);
 
     auto* legalGroup = new QGroupBox(QStringLiteral("Правовая информация"), this);
     auto* legalLayout = new QVBoxLayout(legalGroup);
@@ -99,7 +113,7 @@ LauncherPage::LauncherPage(QWidget* parent) : QWidget(parent), ui(new Ui::Launch
 
     loadSettings();
 
-    ui->updateSettingsBox->setHidden(!APPLICATION->updater());
+    ui->updateSettingsBox->setHidden(!APPLICATION->updaterEnabled());
 }
 
 LauncherPage::~LauncherPage()
@@ -109,6 +123,13 @@ LauncherPage::~LauncherPage()
 
 bool LauncherPage::apply()
 {
+    try {
+        LauncherUpdate::source(m_updateSource->text(), BuildConfig.UPDATER_GITHUB_REPO);
+    } catch (const std::exception& error) {
+        QMessageBox::warning(this, QStringLiteral("Источник обновлений"), QString::fromUtf8(error.what()));
+        return false;
+    }
+    APPLICATION->settings()->set("LauncherUpdateSource", m_updateSource->text().trimmed());
     applySettings();
     return true;
 }
@@ -275,6 +296,8 @@ void LauncherPage::applySettings()
 void LauncherPage::loadSettings()
 {
     auto s = APPLICATION->settings();
+    m_updateSource->setText(s->get("LauncherUpdateSource").toString());
+    m_updateResult->setText(s->get("LauncherUpdateLastCheck").toString() + "\n" + s->get("LauncherUpdateLastResult").toString());
     // Updates
     if (APPLICATION->updater()) {
         ui->autoUpdateCheckBox->setChecked(APPLICATION->updater()->getAutomaticallyChecksForUpdates());

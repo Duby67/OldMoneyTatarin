@@ -49,6 +49,9 @@ namespace Ui {
 class LauncherPage;
 }
 
+class QLineEdit;
+class QLabel;
+
 class LauncherPage : public QWidget, public BasePage {
     Q_OBJECT
 
@@ -78,4 +81,6 @@ class LauncherPage : public QWidget, public BasePage {
 
    private:
     Ui::LauncherPage* ui;
+    QLineEdit* m_updateSource = nullptr;
+    QLabel* m_updateResult = nullptr;
 };

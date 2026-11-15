@@ -188,6 +188,12 @@ set(UPDATE_SOURCES
 set(PRISM_UPDATE_SOURCES
     updater/PrismExternalUpdater.h
     updater/PrismExternalUpdater.cpp
+    updater/ReleaseInfo.h
+    updater/ReleaseInfo.cpp
+    updater/ReleaseChecker.h
+    updater/ReleaseChecker.cpp
+    updater/ReleaseQuery.h
+    updater/ReleaseQuery.cpp
 )
 
 # Backend for the news bar... there's usually no news.
