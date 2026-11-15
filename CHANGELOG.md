@@ -1,6 +1,6 @@
 # Изменения OldMoneyTatarin Launcher
 
-Выпуски ещё не опубликованы. Порядок подготовки патчноутов описан в [инструкции выпуска](docs/RELEASING.md).
+Порядок подготовки патчноутов описан в [инструкции выпуска](docs/RELEASING.md).
 
 ## [v0.3.0](https://github.com/Duby67/OldMoneyTatarin/releases/tag/v0.3.0) — 2026-11-15
 
@@ -12,6 +12,7 @@
 ### Изменено
 
 - Сокращён текст выбора каталога сборок в быстрой настройке.
+- Версия лаунчера отображается без суффикса ветки: OldMoneyTatarin 0.3.0.
 
 ## [v0.2.0](https://github.com/Duby67/OldMoneyTatarin/releases/tag/v0.2.0) — 2026-11-15
 
