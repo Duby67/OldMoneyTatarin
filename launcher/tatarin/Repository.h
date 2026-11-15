@@ -14,7 +14,8 @@ public:
     using std::runtime_error::runtime_error;
 };
 
-// На этапе локальной разработки доверяем только явному IPv4 loopback.
+QString defaultSource();
+// HTTPS в публичной раздаче; HTTP разрешён только для локальных тестов.
 QUrl sourceUrl(const QString& text);
 QJsonObject catalog(QNetworkAccessManager* network, const QUrl& source, Cancel cancel = {});
 QJsonObject manifest(QNetworkAccessManager* network, const QUrl& source, const QJsonObject& pack, Cancel cancel = {});

@@ -1,0 +1,17 @@
+{
+    admin off
+    auto_https off
+}
+
+https://play.fleexpoint.space:8443 {
+    tls /certificates/fullchain.pem /certificates/privkey.pem
+    root * /srv
+    @repository path /v1/* /objects/*
+    handle @repository {
+        header Cache-Control "no-cache"
+        file_server
+    }
+    handle {
+        respond 404
+    }
+}

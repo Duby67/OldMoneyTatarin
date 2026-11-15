@@ -2,6 +2,8 @@
 [Setup]
 AppId={{3640C802-CA1A-4194-AF18-D3C449E082CA}
 AppName=OldMoneyTatarin
+AppPublisher=TATARIN
+VersionInfoCompany=TATARIN Co.
 AppVersion=@OldMoneyTatarin_VERSION@
 VersionInfoVersion=@OldMoneyTatarin_VERSION@.0
 DefaultDirName={localappdata}\Programs\OldMoneyTatarin
@@ -35,6 +37,9 @@ Source: "@INSTALLER_STAGE@\*"; DestDir: "{app}"; Flags: ignoreversion recursesub
 
 [Icons]
 Name: "{userprograms}\OldMoneyTatarin"; Filename: "{app}\@Launcher_APP_BINARY_NAME@.exe"; WorkingDir: "{app}"
+
+[Run]
+Filename: "{app}\@Launcher_APP_BINARY_NAME@.exe"; WorkingDir: "{app}"; Description: "Открыть лаунчер"; Flags: nowait postinstall skipifsilent
 
 [Code]
 procedure CurPageChanged(CurPageID: Integer);

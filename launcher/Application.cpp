@@ -797,7 +797,7 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
         m_settings->registerSetting("ModMetadataDisabled", false);
         m_settings->registerSetting("ModDependenciesDisabled", false);
         m_settings->registerSetting("SkipModpackUpdatePrompt", false);
-        m_settings->registerSetting("TatarinDevSource", "http://127.0.0.1:18765/");
+        m_settings->registerSetting("TatarinDevSource", "https://play.fleexpoint.space:8443/");
         m_settings->registerSetting("ShowModIncompat", false);
 
         // Minecraft offline player name

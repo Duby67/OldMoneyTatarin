@@ -15,7 +15,7 @@ namespace Tatarin {
 CatalogPage::CatalogPage(NewInstanceDialog* dialog) : m_dialog(dialog)
 {
     auto* layout = new QVBoxLayout(this);
-    layout->addWidget(new QLabel(QStringLiteral("Локальный каталог сборок TATARIN"), this));
+    layout->addWidget(new QLabel(QStringLiteral("Каталог сборок TATARIN"), this));
     m_directory = new QLabel(this);
     m_directory->setTextFormat(Qt::PlainText);
     m_directory->setWordWrap(true);
@@ -29,6 +29,8 @@ CatalogPage::CatalogPage(NewInstanceDialog* dialog) : m_dialog(dialog)
                                  .arg(QDir::toNativeSeparators(QDir(APPLICATION->settings()->get("InstanceDir").toString()).absolutePath())));
     });
     m_source = new QLineEdit(APPLICATION->settings()->get("TatarinDevSource").toString(), this);
+    if (m_source->text() == QStringLiteral("http://127.0.0.1:18765/"))
+        m_source->setText(defaultSource());
     layout->addWidget(m_source);
     auto* refreshButton = new QPushButton(QStringLiteral("Обновить каталог"), this);
     layout->addWidget(refreshButton);
