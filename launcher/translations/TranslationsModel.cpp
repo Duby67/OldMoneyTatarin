@@ -37,6 +37,11 @@
 #include "TranslationsModel.h"
 
 #include <QDebug>
+#include <QFileSystemWatcher>
+#include <QLibraryInfo>
+#include <QLocale>
+#include <QTranslator>
+#include <algorithm>
 #include <memory>
 #include <utility>
 
@@ -161,7 +166,6 @@ struct TranslationsModel::Private {
     std::unique_ptr<QTranslator> m_qtTranslator;
     std::unique_ptr<QTranslator> m_appTranslator;
 
-
     QFileSystemWatcher* watcher = nullptr;
 
     bool m_noLanguageSet = false;
@@ -191,12 +195,6 @@ void TranslationsModel::translationDirChanged(const QString& path)
     }
     selectLanguage(selectedLanguage());
 }
-
-
-
-namespace {
-
-}  // namespace
 
 void TranslationsModel::reloadLocalFiles()
 {
@@ -262,7 +260,7 @@ void TranslationsModel::reloadLocalFiles()
     if (languages.isEmpty()) {
         return;
     }
-    beginInsertRows(QModelIndex(), 0, d->m_languages.size() + languages.size() - 1);
+    beginResetModel();
     for (auto& language : languages) {
         d->m_languages.append(language);
     }
@@ -279,7 +277,7 @@ void TranslationsModel::reloadLocalFiles()
         return a.languageName().toLower() < b.languageName().toLower();
     };
     std::ranges::sort(d->m_languages, comp);
-    endInsertRows();
+    endResetModel();
 }
 
 namespace {
@@ -485,8 +483,6 @@ QString TranslationsModel::selectedLanguage() const
 {
     return d->m_selectedLanguage;
 }
-
-
 
 void TranslationsModel::updateLanguage(const QString& key)
 {

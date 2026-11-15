@@ -79,7 +79,8 @@ LauncherPage::LauncherPage(QWidget* parent) : QWidget(parent), ui(new Ui::Launch
     legalText->setOpenExternalLinks(false);
     legalText->setMaximumHeight(200);
     QString notices = BuildConfig.LAUNCHER_COPYRIGHT + QStringLiteral("\n\n");
-    for (const auto& path : {QStringLiteral(":/documents/COPYING.md"), QStringLiteral(":/documents/LICENSE")}) {
+    for (const auto& path : {QStringLiteral(":/documents/COPYING.md"), QStringLiteral(":/documents/LICENSE"),
+                             QStringLiteral(":/documents/translations-LICENSE")}) {
         QFile document(path);
         if (document.open(QIODevice::ReadOnly)) {
             notices += QString::fromUtf8(document.readAll()) + QStringLiteral("\n\n");
@@ -92,7 +93,6 @@ LauncherPage::LauncherPage(QWidget* parent) : QWidget(parent), ui(new Ui::Launch
     if (auto* contents = qobject_cast<QVBoxLayout*>(ui->scrollAreaWidgetContents->layout())) {
         contents->addWidget(legalGroup);
     }
-
 
     ui->sortingModeGroup->setId(ui->sortByNameBtn, Sort_Name);
     ui->sortingModeGroup->setId(ui->sortLastLaunchedBtn, Sort_LastLaunch);

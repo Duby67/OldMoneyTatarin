@@ -53,7 +53,7 @@ namespace ResourceDownload {
 ResourceDownloadDialog::ResourceDownloadDialog(QWidget* parent, ResourceFolderModel* baseModel, bool suppressInitialSearch)
     : QDialog(parent)
     , m_base_model(baseModel)
-    , m_buttons(QDialogButtonBox::Help | QDialogButtonBox::Ok | QDialogButtonBox::Cancel)
+    , m_buttons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel)
     , m_vertical_layout(this)
     , m_suppressInitialSearch(suppressInitialSearch)
 {
@@ -79,10 +79,6 @@ ResourceDownloadDialog::ResourceDownloadDialog(QWidget* parent, ResourceFolderMo
     auto* cancelButton = m_buttons.button(QDialogButtonBox::Cancel);
     cancelButton->setDefault(false);
     cancelButton->setAutoDefault(false);
-
-    auto* helpButton = m_buttons.button(QDialogButtonBox::Help);
-    helpButton->setDefault(false);
-    helpButton->setAutoDefault(false);
 
     setWindowModality(Qt::WindowModal);
 }
@@ -147,8 +143,6 @@ void ResourceDownloadDialog::connectButtons()
     auto* cancelButton = m_buttons.button(QDialogButtonBox::Cancel);
     connect(cancelButton, &QPushButton::clicked, this, &ResourceDownloadDialog::reject);
 
-    auto* helpButton = m_buttons.button(QDialogButtonBox::Help);
-    connect(helpButton, &QPushButton::clicked, m_container, &PageContainer::help);
 }
 
 void ResourceDownloadDialog::confirm()

@@ -112,35 +112,9 @@ class Config {
     QString GIT_REFSPEC;
 
     /**
-     * This is used to fetch the news RSS feed.
-     * It defaults in CMakeLists.txt to "https://multimc.org/rss.xml"
-     */
-    QString NEWS_RSS_URL;
-
-    /**
-     * URL that gets opened when the user clicks "More News"
-     */
-    QString NEWS_OPEN_URL;
-
-    /**
-     * URL that gets opened when the user clicks 'Launcher Help'
-     */
-    QString WIKI_URL;
-
-    /**
-     * URL (with arg %1 to be substituted with page-id) that gets opened when the user requests help in a dialog window
-     */
-    QString HELP_URL;
-
-    /**
      * URL that gets opened when the user succesfully logins.
      */
     QString LOGIN_CALLBACK_URL;
-
-    /**
-     * Client ID you can get from Imgur when you register an application
-     */
-    QString IMGUR_CLIENT_ID;
 
     /**
      * Client ID you can get from Microsoft Identity Platform when you register an application
@@ -165,17 +139,9 @@ class Config {
     QString GLFW_LIBRARY_NAME;
     QString OPENAL_LIBRARY_NAME;
 
-    QString BUG_TRACKER_URL;
-    QString TRANSLATIONS_URL;
-    QString MATRIX_URL;
-    QString DISCORD_URL;
-    QString SUBREDDIT_URL;
-
     QString DEFAULT_RESOURCE_BASE = "https://resources.download.minecraft.net/";
     QString LIBRARY_BASE = "https://libraries.minecraft.net/";
-    QString IMGUR_BASE_URL = "https://api.imgur.com/3/";
     QString LEGACY_FMLLIBS_BASE_URL;
-    QString TRANSLATION_FILES_URL;
 
     QString FTB_API_BASE_URL = "https://api.feed-the-beast.com/v1/modpacks/public";
 

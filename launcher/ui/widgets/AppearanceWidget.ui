@@ -38,8 +38,6 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="0">
-         </item>
         <item row="0" column="3">
          <widget class="QPushButton" name="widgetStyleFolder">
           <property name="toolTip">
@@ -63,8 +61,6 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="2">
-         </item>
         <item row="0" column="2">
          <widget class="QComboBox" name="widgetStyleComboBox">
           <property name="sizePolicy">
@@ -98,8 +94,6 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="3">
-         </item>
         <item row="4" column="2">
          <layout class="QHBoxLayout" name="horizontalLayout_8">
           <item>
@@ -115,8 +109,6 @@
             </property>
            </widget>
           </item>
-          <item>
-           </item>
          </layout>
         </item>
        </layout>
@@ -193,12 +185,6 @@
        </spacer>
       </item>
       <item>
-       </item>
-      <item>
-       </item>
-      <item>
-       </item>
-      <item>
        <spacer name="verticalSpacer">
         <property name="orientation">
          <enum>Qt::Orientation::Vertical</enum>
@@ -214,10 +200,6 @@
         </property>
        </spacer>
       </item>
-      <item>
-       </item>
-      <item>
-       </item>
      </layout>
     </widget>
    </item>
@@ -229,8 +211,6 @@
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
-        <item>
-         </item>
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_4">
           <item>

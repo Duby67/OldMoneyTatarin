@@ -99,7 +99,6 @@ class PageContainer : public QWidget, public BasePageContainer {
     void retranslate();
 
    public slots:
-    void help();
 
    signals:
     /** Emitted when the currently selected page is changed */

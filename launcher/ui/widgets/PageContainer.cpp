@@ -239,11 +239,6 @@ void PageContainer::showPage(int row)
     }
 }
 
-void PageContainer::help()
-{
-    // No external upstream help service is configured.
-}
-
 void PageContainer::currentChanged(const QModelIndex& current)
 {
     int selectedIndex = current.isValid() ? m_proxyModel->mapToSource(current).row() : -1;

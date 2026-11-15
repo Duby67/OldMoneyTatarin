@@ -1,8 +1,8 @@
 <!DOCTYPE RCC>
 <RCC version="1.0">
     <qresource prefix="/documents">
-        <file>../../../COPYING.md</file>
-        <file>../../../LICENSE</file>
+        <file alias="COPYING.md">../../../COPYING.md</file>
+        <file alias="LICENSE">../../../LICENSE</file>
+        <file alias="translations-LICENSE">../../translations/bundled/LICENSE</file>
     </qresource>
 </RCC>
-
