@@ -7,7 +7,6 @@
 #include <QVBoxLayout>
 #include "Application.h"
 #include "settings/SettingsObject.h"
-#include "BuildConfig.h"
 #include "settings/Setting.h"
 #include "translations/TranslationsModel.h"
 
@@ -25,12 +24,6 @@ LanguageSelectionWidget::LanguageSelectionWidget(QWidget* parent) : QWidget(pare
     languageView->header()->setCascadingSectionResizes(true);
     languageView->header()->setStretchLastSection(false);
     verticalLayout->addWidget(languageView);
-    helpUsLabel = new QLabel(this);
-    helpUsLabel->setObjectName(QStringLiteral("helpUsLabel"));
-    helpUsLabel->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
-    helpUsLabel->setOpenExternalLinks(true);
-    helpUsLabel->setWordWrap(true);
-    verticalLayout->addWidget(helpUsLabel);
 
     formatCheckbox = new QCheckBox(this);
     formatCheckbox->setObjectName(QStringLiteral("formatCheckbox"));
@@ -60,9 +53,6 @@ QString LanguageSelectionWidget::getSelectedLanguageKey() const
 
 void LanguageSelectionWidget::retranslate()
 {
-    QString text = tr("Don't see your language or the quality is poor?<br/><a href=\"%1\">Help us with translations!</a>")
-                       .arg(BuildConfig.TRANSLATIONS_URL);
-    helpUsLabel->setText(text);
     formatCheckbox->setText(tr("Use system regional standards"));
 }
 
